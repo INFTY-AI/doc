@@ -1,0 +1,451 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>infty.optim.zeroth_order_updates.zeroflow &mdash; INFTY 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=2709fde1"></script>
+      <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            INFTY
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer_guide.html">Developer Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">INFTY</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">infty.optim.zeroth_order_updates.zeroflow</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for infty.optim.zeroth_order_updates.zeroflow</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch._functorch.functional_call</span><span class="w"> </span><span class="kn">import</span> <span class="n">functional_call</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch._functorch.eager_transforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">jvp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">infty.utils.running</span><span class="w"> </span><span class="kn">import</span> <span class="n">fast_random_mask_like</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimpleNamespace</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch.optim</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optimizer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimpleNamespace</span>
+
+<div class="viewcode-block" id="ZeroFlow">
+<a class="viewcode-back" href="../../../../api/optim.html#infty.optim.ZeroFlow">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ZeroFlow</span><span class="p">(</span><span class="n">Optimizer</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">base_optimizer</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">defaults</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;lr&#39;</span><span class="p">:</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">}</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">defaults</span><span class="p">)</span>
+
+        <span class="n">default_args</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;q&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s2">&quot;inftyopt&quot;</span><span class="p">:</span> <span class="s2">&quot;zo_sgd&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;perturbation_mode&quot;</span><span class="p">:</span> <span class="s2">&quot;two_side&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;zo_eps&quot;</span><span class="p">:</span> <span class="mf">0.001</span><span class="p">,</span>
+            <span class="s2">&quot;use_history_grad&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">&quot;alpha&quot;</span><span class="p">:</span> <span class="mf">0.9</span><span class="p">,</span>
+            <span class="s2">&quot;gradient_sparsity&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;memory_efficient&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">merged_args</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">default_args</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">}</span>
+        <span class="n">args_ns</span> <span class="o">=</span> <span class="n">SimpleNamespace</span><span class="p">(</span><span class="o">**</span><span class="n">merged_args</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">q</span> <span class="o">=</span> <span class="n">args_ns</span><span class="o">.</span><span class="n">q</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">zo_eps</span> <span class="o">=</span> <span class="n">args_ns</span><span class="o">.</span><span class="n">zo_eps</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">perturbation_mode</span> <span class="o">=</span> <span class="n">args_ns</span><span class="o">.</span><span class="n">perturbation_mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_history_grad</span> <span class="o">=</span> <span class="n">args_ns</span><span class="o">.</span><span class="n">use_history_grad</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="n">args_ns</span><span class="o">.</span><span class="n">alpha</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gradient_sparsity</span> <span class="o">=</span> <span class="n">args_ns</span><span class="o">.</span><span class="n">gradient_sparsity</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">memory_efficient</span> <span class="o">=</span> <span class="n">args_ns</span><span class="o">.</span><span class="n">memory_efficient</span>
+
+        <span class="c1"># generator</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sparse_grad_rng</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Generator</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="s1">&#39;cuda&#39;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sparse_grad_random_seed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="mf">1e9</span><span class="p">))</span>
+
+        <span class="c1"># inject model and base_optimizer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inftyopt</span> <span class="o">=</span> <span class="n">args_ns</span><span class="o">.</span><span class="n">inftyopt</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;zeroflow&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sign</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base_optimizer</span> <span class="o">=</span> <span class="n">base_optimizer</span>
+
+
+    <span class="nd">@torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">zo_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memory_efficient</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        impleneted by MeZO: https://arxiv.org/abs/2305.17333</span>
+<span class="sd">        only support q=1 for the memory efficiency.</span>
+<span class="sd">        if you want to implement q&gt;1, need to store random seeds to save memory.</span>
+<span class="sd">        in addition, we need to set different random seed for different z in the q-loop.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">named_parameters_to_optim</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">requires_grad</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">named_parameters_to_optim</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">name</span><span class="p">,</span> <span class="n">param</span><span class="p">))</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">grad</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">zo_random_seed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="mf">1e9</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">zo_perturb_parameters</span><span class="p">(</span><span class="n">scaling_factor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">memory_efficient</span><span class="o">=</span><span class="n">memory_efficient</span><span class="p">,</span> <span class="n">initial_perturbation</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">logits</span><span class="p">,</span> <span class="n">loss1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">zo_forward</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">perturbation_mode</span> <span class="o">==</span> <span class="s2">&quot;one_side&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">zo_perturb_parameters</span><span class="p">(</span><span class="n">scaling_factor</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">memory_efficient</span><span class="o">=</span><span class="n">memory_efficient</span><span class="p">)</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">loss2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">zo_forward</span><span class="p">()</span>
+            <span class="n">projected_grad</span> <span class="o">=</span> <span class="p">((</span><span class="nb">sum</span><span class="p">(</span><span class="n">loss1</span><span class="p">)</span> <span class="o">-</span> <span class="nb">sum</span><span class="p">(</span><span class="n">loss2</span><span class="p">))</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">zo_eps</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">perturbation_mode</span> <span class="o">==</span> <span class="s2">&quot;two_side&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">zo_perturb_parameters</span><span class="p">(</span><span class="n">scaling_factor</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span> <span class="n">memory_efficient</span><span class="o">=</span><span class="n">memory_efficient</span><span class="p">)</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">loss2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">zo_forward</span><span class="p">()</span>
+            <span class="n">projected_grad</span> <span class="o">=</span> <span class="p">((</span><span class="nb">sum</span><span class="p">(</span><span class="n">loss1</span><span class="p">)</span> <span class="o">-</span> <span class="nb">sum</span><span class="p">(</span><span class="n">loss2</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">zo_eps</span><span class="p">))</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">zo_perturb_parameters</span><span class="p">(</span><span class="n">scaling_factor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">memory_efficient</span><span class="o">=</span><span class="n">memory_efficient</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid perturbation mode: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">perturbation_mode</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_estimated_grad</span><span class="p">(</span><span class="n">projected_grad</span><span class="p">,</span> <span class="n">memory_efficient</span><span class="o">=</span><span class="n">memory_efficient</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base_optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base_optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">(</span><span class="n">set_to_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">logits</span><span class="p">,</span> <span class="n">loss1</span>
+
+    <span class="nd">@torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">zo_step_v1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memory_efficient</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        support ZO gradient estimation with query &gt; 1</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span> <span class="o">&gt;</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">named_parameters_to_optim</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">requires_grad</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">named_parameters_to_optim</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">name</span><span class="p">,</span> <span class="n">param</span><span class="p">))</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">grad</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">i_q</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">zo_random_seed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="mf">1e9</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">zo_perturb_parameters</span><span class="p">(</span><span class="n">scaling_factor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">memory_efficient</span><span class="o">=</span><span class="n">memory_efficient</span><span class="p">,</span> <span class="n">initial_perturbation</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">logits</span><span class="p">,</span> <span class="n">loss1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">zo_forward</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">perturbation_mode</span> <span class="o">==</span> <span class="s2">&quot;one_side&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">zo_perturb_parameters</span><span class="p">(</span><span class="n">scaling_factor</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">memory_efficient</span><span class="o">=</span><span class="n">memory_efficient</span><span class="p">)</span>
+                <span class="n">_</span><span class="p">,</span> <span class="n">loss2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">zo_forward</span><span class="p">()</span>
+                <span class="n">projected_grad</span> <span class="o">=</span> <span class="p">((</span><span class="nb">sum</span><span class="p">(</span><span class="n">loss1</span><span class="p">)</span> <span class="o">-</span> <span class="nb">sum</span><span class="p">(</span><span class="n">loss2</span><span class="p">))</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">zo_eps</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">perturbation_mode</span> <span class="o">==</span> <span class="s2">&quot;two_side&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">zo_perturb_parameters</span><span class="p">(</span><span class="n">scaling_factor</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span> <span class="n">memory_efficient</span><span class="o">=</span><span class="n">memory_efficient</span><span class="p">)</span>
+                <span class="n">_</span><span class="p">,</span> <span class="n">loss2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">zo_forward</span><span class="p">()</span>
+                <span class="n">projected_grad</span> <span class="o">=</span> <span class="p">((</span><span class="nb">sum</span><span class="p">(</span><span class="n">loss1</span><span class="p">)</span> <span class="o">-</span> <span class="nb">sum</span><span class="p">(</span><span class="n">loss2</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">zo_eps</span><span class="p">))</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">zo_perturb_parameters</span><span class="p">(</span><span class="n">scaling_factor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">memory_efficient</span><span class="o">=</span><span class="n">memory_efficient</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid perturbation mode: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">perturbation_mode</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_estimated_grad</span><span class="p">(</span><span class="n">projected_grad</span><span class="p">,</span> <span class="n">memory_efficient</span><span class="o">=</span><span class="n">memory_efficient</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base_optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base_optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">(</span><span class="n">set_to_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">logits</span><span class="p">,</span> <span class="n">loss1</span>
+
+    <span class="nd">@torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">zo_conserv_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memory_efficient</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Conservative update: reject update if loss does not decrease.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">named_parameters_to_optim</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">requires_grad</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">named_parameters_to_optim</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">name</span><span class="p">,</span> <span class="n">param</span><span class="p">))</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">grad</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">logits</span><span class="p">,</span> <span class="n">loss0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">zo_forward</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">zo_random_seed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="mf">1e9</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">zo_perturb_parameters</span><span class="p">(</span><span class="n">scaling_factor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">memory_efficient</span><span class="o">=</span><span class="n">memory_efficient</span><span class="p">,</span> <span class="n">initial_perturbation</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">loss1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">zo_forward</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">perturbation_mode</span> <span class="o">==</span> <span class="s2">&quot;one_side&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">zo_perturb_parameters</span><span class="p">(</span><span class="n">scaling_factor</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">memory_efficient</span><span class="o">=</span><span class="n">memory_efficient</span><span class="p">)</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">loss2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">zo_forward</span><span class="p">()</span>
+            <span class="n">projected_grad</span> <span class="o">=</span> <span class="p">((</span><span class="nb">sum</span><span class="p">(</span><span class="n">loss1</span><span class="p">)</span> <span class="o">-</span> <span class="nb">sum</span><span class="p">(</span><span class="n">loss2</span><span class="p">))</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">zo_eps</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">perturbation_mode</span> <span class="o">==</span> <span class="s2">&quot;two_side&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">zo_perturb_parameters</span><span class="p">(</span><span class="n">scaling_factor</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span> <span class="n">memory_efficient</span><span class="o">=</span><span class="n">memory_efficient</span><span class="p">)</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">loss2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">zo_forward</span><span class="p">()</span>
+            <span class="n">projected_grad</span> <span class="o">=</span> <span class="p">((</span><span class="nb">sum</span><span class="p">(</span><span class="n">loss1</span><span class="p">)</span> <span class="o">-</span> <span class="nb">sum</span><span class="p">(</span><span class="n">loss2</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">zo_eps</span><span class="p">))</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">zo_perturb_parameters</span><span class="p">(</span><span class="n">scaling_factor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">memory_efficient</span><span class="o">=</span><span class="n">memory_efficient</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid perturbation mode: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">perturbation_mode</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">update_params</span><span class="p">(</span><span class="n">projected_grad</span><span class="p">,</span> <span class="n">cons_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_estimated_grad</span><span class="p">(</span><span class="n">projected_grad</span><span class="p">,</span> <span class="n">memory_efficient</span><span class="o">=</span><span class="n">memory_efficient</span><span class="p">,</span> <span class="n">cons_scale</span><span class="o">=</span><span class="n">cons_scale</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">base_optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">base_optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">(</span><span class="n">set_to_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            
+        <span class="n">update_params</span><span class="p">(</span><span class="n">projected_grad</span><span class="p">)</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">loss1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">zo_forward</span><span class="p">()</span>
+        <span class="n">update_params</span><span class="p">(</span><span class="n">projected_grad</span><span class="p">,</span> <span class="n">cons_scale</span><span class="o">=-</span><span class="mf">2.0</span><span class="p">)</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">loss2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">zo_forward</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">sum</span><span class="p">(</span><span class="n">loss1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">sum</span><span class="p">(</span><span class="n">loss0</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">sum</span><span class="p">(</span><span class="n">loss0</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">sum</span><span class="p">(</span><span class="n">loss2</span><span class="p">):</span>
+                <span class="n">update_params</span><span class="p">(</span><span class="n">projected_grad</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">sum</span><span class="p">(</span><span class="n">loss1</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">sum</span><span class="p">(</span><span class="n">loss2</span><span class="p">):</span>
+                <span class="n">update_params</span><span class="p">(</span><span class="n">projected_grad</span><span class="p">,</span> <span class="n">cons_scale</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">logits</span><span class="p">,</span> <span class="n">loss1</span>
+
+<div class="viewcode-block" id="ZeroFlow.forward_grad_step">
+<a class="viewcode-back" href="../../../../api/optim.html#infty.optim.ZeroFlow.forward_grad_step">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward_grad_step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Forward gradient method (Forward Gradient Method), no need for backpropagation.</span>
+<span class="sd">        Paper: https://arxiv.org/pdf/2202.08587.pdf</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">named_parameters_to_optim</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">requires_grad</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">named_parameters_to_optim</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">name</span><span class="p">,</span> <span class="n">param</span><span class="p">))</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">grad</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">zo_random_seed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="mf">1e9</span><span class="p">))</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">zo_random_seed</span><span class="p">)</span>
+        <span class="n">vs</span> <span class="o">=</span> <span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">randn_like</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">named_parameters_to_optim</span><span class="p">]</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">functional_call_loss</span><span class="p">,</span>
+            <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">named_parameters_to_optim</span><span class="p">],</span>
+            <span class="n">buffers</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">named_buffers</span><span class="p">()),</span>
+            <span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">batch</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch</span>
+        <span class="p">)</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="n">outputs</span><span class="p">,</span> <span class="n">jvp_</span> <span class="o">=</span> <span class="n">jvp</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">([</span><span class="n">p</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">named_parameters_to_optim</span><span class="p">]),),</span> <span class="p">(</span><span class="n">vs</span><span class="p">,))</span>
+        <span class="n">jvp_</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">jvp_</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">v</span><span class="p">,</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">vs</span><span class="p">,</span> <span class="p">[(</span><span class="n">n</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">named_parameters_to_optim</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="s2">&quot;bias&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">n</span> <span class="ow">and</span> <span class="s2">&quot;layer_norm&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">n</span> <span class="ow">and</span> <span class="s2">&quot;layernorm&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">n</span><span class="p">:</span>
+                    <span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">sub_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">defaults</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;lr&quot;</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">v</span> <span class="o">*</span> <span class="n">jvp_</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">device</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">defaults</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;weight_decay&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">*</span> <span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">sub_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">defaults</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;lr&quot;</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">v</span> <span class="o">*</span> <span class="n">jvp_</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">device</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">outputs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="ZeroFlow.zo_perturb_parameters">
+<a class="viewcode-back" href="../../../../api/optim.html#infty.optim.ZeroFlow.zo_perturb_parameters">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">zo_perturb_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scaling_factor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">initial_perturbation</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">memory_efficient</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">random_seed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="c1"># if initial_perturbation:</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="n">random_seed</span> <span class="k">if</span> <span class="n">random_seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">zo_random_seed</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sparse_grad_rng</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sparse_grad_random_seed</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">named_parameters_to_optim</span><span class="p">:</span>
+            <span class="n">z</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">mean</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">std</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">size</span><span class="p">(),</span> <span class="n">device</span><span class="o">=</span><span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+            <span class="n">grad_sparsity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_grad_sparsity_by_name</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">grad_sparsity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">z</span><span class="p">[</span><span class="n">fast_random_mask_like</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">grad_sparsity</span><span class="p">,</span> <span class="n">generator</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sparse_grad_rng</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">param</span><span class="o">.</span><span class="n">data</span> <span class="o">+=</span> <span class="n">z</span> <span class="o">*</span> <span class="n">scaling_factor</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">zo_eps</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">memory_efficient</span> <span class="ow">and</span> <span class="n">initial_perturbation</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">[</span><span class="n">param</span><span class="p">][</span><span class="s1">&#39;z&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span></div>
+
+            
+<div class="viewcode-block" id="ZeroFlow.set_estimated_grad">
+<a class="viewcode-back" href="../../../../api/optim.html#infty.optim.ZeroFlow.set_estimated_grad">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_estimated_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">projected_grad</span><span class="p">,</span> <span class="n">memory_efficient</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">random_seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cons_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="n">random_seed</span> <span class="k">if</span> <span class="n">random_seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">zo_random_seed</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sparse_grad_rng</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sparse_grad_random_seed</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">named_parameters_to_optim</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">memory_efficient</span><span class="p">:</span>
+                <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">[</span><span class="n">param</span><span class="p">][</span><span class="s1">&#39;z&#39;</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">z</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">mean</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">std</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">size</span><span class="p">(),</span> <span class="n">device</span><span class="o">=</span><span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+                <span class="n">grad_sparsity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_grad_sparsity_by_name</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">grad_sparsity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">z</span><span class="p">[</span><span class="n">fast_random_mask_like</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">grad_sparsity</span><span class="p">,</span> <span class="n">generator</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sparse_grad_rng</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_history_grad</span><span class="p">:</span>
+                <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">[</span><span class="n">param</span><span class="p">]</span>
+                <span class="k">if</span> <span class="s2">&quot;history_grad&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">state</span><span class="p">:</span>
+                    <span class="n">state</span><span class="p">[</span><span class="s2">&quot;history_grad&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">state</span><span class="p">[</span><span class="s2">&quot;history_grad&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mul_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">)</span><span class="o">.</span><span class="n">add_</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">)</span>
+                <span class="n">smoothed_z</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;history_grad&quot;</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">smoothed_z</span> <span class="o">=</span> <span class="n">z</span>
+            <span class="n">graddiff_times_z</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">projected_grad</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sign</span> <span class="k">else</span> <span class="n">projected_grad</span><span class="p">)</span> <span class="o">*</span> <span class="n">smoothed_z</span> <span class="o">*</span> <span class="n">cons_scale</span>
+
+            <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">grad</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">grad</span> <span class="o">=</span> <span class="n">graddiff_times_z</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">grad</span> <span class="o">+=</span> <span class="n">graddiff_times_z</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span></div>
+
+
+<div class="viewcode-block" id="ZeroFlow.zo_forward">
+<a class="viewcode-back" href="../../../../api/optim.html#infty.optim.ZeroFlow.zo_forward">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">zo_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">inference_mode</span><span class="p">():</span>
+            <span class="n">logits</span><span class="p">,</span> <span class="n">loss_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward_func</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">logits</span><span class="p">,</span> <span class="n">loss_list</span></div>
+
+
+<div class="viewcode-block" id="ZeroFlow.get_grad_sparsity_by_name">
+<a class="viewcode-back" href="../../../../api/optim.html#infty.optim.ZeroFlow.get_grad_sparsity_by_name">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_grad_sparsity_by_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gradient_sparsity</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gradient_sparsity</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gradient_sparsity</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gradient_sparsity</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gradient_sparsity</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+    <span class="nd">@torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_closure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loss_fn</span><span class="p">,</span> <span class="n">batch</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">batch</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">get_grad</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+                <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">inference_mode</span><span class="p">():</span>
+                    <span class="n">logits</span><span class="p">,</span> <span class="n">loss_list</span> <span class="o">=</span> <span class="n">loss_fn</span><span class="p">()</span>
+                <span class="k">return</span> <span class="n">logits</span><span class="p">,</span> <span class="n">loss_list</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">forward_func</span> <span class="o">=</span> <span class="n">get_grad</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">functional_call_loss</span> <span class="o">=</span> <span class="n">loss_fn</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">batch</span> <span class="o">=</span> <span class="n">batch</span>
+
+
+<div class="viewcode-block" id="ZeroFlow.step">
+<a class="viewcode-back" href="../../../../api/optim.html#infty.optim.ZeroFlow.step">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">closure</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">delay</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inftyopt</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;zo_sgd&quot;</span><span class="p">,</span> <span class="s2">&quot;zo_adam&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">logits</span><span class="p">,</span> <span class="n">loss_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">zo_step</span><span class="p">(</span><span class="n">memory_efficient</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">memory_efficient</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logits</span><span class="p">,</span> <span class="n">loss_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">zo_step_v1</span><span class="p">(</span><span class="n">memory_efficient</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">memory_efficient</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">inftyopt</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;zo_sgd_sign&quot;</span><span class="p">,</span> <span class="s2">&quot;zo_adam_sign&quot;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sign</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">logits</span><span class="p">,</span> <span class="n">loss_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">zo_step</span><span class="p">(</span><span class="n">memory_efficient</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">memory_efficient</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logits</span><span class="p">,</span> <span class="n">loss_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">zo_step_v1</span><span class="p">(</span><span class="n">memory_efficient</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">memory_efficient</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">inftyopt</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;zo_sgd_conserve&quot;</span><span class="p">,</span> <span class="s2">&quot;zo_adam_conserve&quot;</span><span class="p">]:</span>
+            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span> <span class="o">==</span> <span class="mi">1</span>
+            <span class="n">logits</span><span class="p">,</span> <span class="n">loss_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">zo_conserv_step</span><span class="p">(</span><span class="n">memory_efficient</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">memory_efficient</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">inftyopt</span> <span class="o">==</span> <span class="s2">&quot;forward_grad&quot;</span><span class="p">:</span>
+            <span class="n">logits</span><span class="p">,</span> <span class="n">loss_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward_grad_step</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid inftyopt: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">inftyopt</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">zo_update</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">logits</span><span class="p">,</span> <span class="n">loss_list</span></div>
+
+
+<div class="viewcode-block" id="ZeroFlow.zo_update">
+<a class="viewcode-back" href="../../../../api/optim.html#infty.optim.ZeroFlow.zo_update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">zo_update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ZeroFlow.delay_step">
+<a class="viewcode-back" href="../../../../api/optim.html#infty.optim.ZeroFlow.delay_step">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">delay_step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base_optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span> </div>
+
+
+<div class="viewcode-block" id="ZeroFlow.post_process">
+<a class="viewcode-back" href="../../../../api/optim.html#infty.optim.ZeroFlow.post_process">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">post_process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">train_loader</span><span class="p">):</span>
+        <span class="k">pass</span>    </div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;ZeroFlow(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">inftyopt</span><span class="si">}</span><span class="s1">)&#39;</span>
+
+<div class="viewcode-block" id="ZeroFlow.get_execution_path_metadata">
+<a class="viewcode-back" href="../../../../api/optim.html#infty.optim.ZeroFlow.get_execution_path_metadata">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_execution_path_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inftyopt</span> <span class="o">==</span> <span class="s2">&quot;forward_grad&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s2">&quot;backward_graph_avoided&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s2">&quot;verification_mode&quot;</span><span class="p">:</span> <span class="s2">&quot;code_path&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;execution_path&quot;</span><span class="p">:</span> <span class="s2">&quot;ZeroFlow.forward_grad_step -&gt; torch.func.jvp -&gt; parameter update without loss.backward&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;graph_context&quot;</span><span class="p">:</span> <span class="s2">&quot;forward_mode_jvp&quot;</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;backward_graph_avoided&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s2">&quot;verification_mode&quot;</span><span class="p">:</span> <span class="s2">&quot;code_path&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;execution_path&quot;</span><span class="p">:</span> <span class="s2">&quot;ZeroFlow.set_closure -&gt; torch.inference_mode scalar feedback -&gt; finite_difference_estimator -&gt; base_optimizer.step&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;graph_context&quot;</span><span class="p">:</span> <span class="s2">&quot;torch.inference_mode_no_backward&quot;</span><span class="p">,</span>
+        <span class="p">}</span></div>
+</div>
+
+    
+    
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

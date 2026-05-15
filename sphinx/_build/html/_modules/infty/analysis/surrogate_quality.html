@@ -1,0 +1,721 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>infty.analysis.surrogate_quality &mdash; INFTY 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=e031e9a9"></script>
+      <script src="../../../_static/doctools.js?v=888ff710"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            INFTY
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer_guide.html">Developer Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">INFTY</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">infty.analysis.surrogate_quality</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for infty.analysis.surrogate_quality</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">csv</span>
+<span class="kn">import</span> <span class="nn">io</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span> <span class="nn">contextlib</span> <span class="kn">import</span> <span class="n">redirect_stderr</span><span class="p">,</span> <span class="n">redirect_stdout</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">product</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+
+<span class="kn">from</span> <span class="nn">infty.plot.paths</span> <span class="kn">import</span> <span class="n">ensure_parent_dir</span>
+<span class="kn">from</span> <span class="nn">infty.utils.running</span> <span class="kn">import</span> <span class="n">fast_random_mask_like</span>
+
+
+<span class="k">def</span> <span class="nf">_safe_float</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">is_tensor</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_serialize_gradient_sparsity</span><span class="p">(</span><span class="n">gradient_sparsity</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">gradient_sparsity</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;none&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gradient_sparsity</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">gradient_sparsity</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">gradient_sparsity</span>
+
+
+<span class="k">def</span> <span class="nf">_flatten_tensors</span><span class="p">(</span><span class="n">tensors</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">tensors</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">tensor</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">tensor</span> <span class="ow">in</span> <span class="n">tensors</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_clone_param_data</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">param</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">params</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">_restore_param_data</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">saved_data</span><span class="p">):</span>
+    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">param</span><span class="p">,</span> <span class="n">saved</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">saved_data</span><span class="p">):</span>
+            <span class="n">param</span><span class="o">.</span><span class="n">copy_</span><span class="p">(</span><span class="n">saved</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_apply_direction</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">direction_tensors</span><span class="p">,</span> <span class="n">scale</span><span class="p">):</span>
+    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">param</span><span class="p">,</span> <span class="n">direction</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">direction_tensors</span><span class="p">):</span>
+            <span class="n">param</span><span class="o">.</span><span class="n">add_</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_evaluate_objective</span><span class="p">(</span><span class="n">objective_fn</span><span class="p">):</span>
+    <span class="n">logits</span><span class="p">,</span> <span class="n">loss_list</span> <span class="o">=</span> <span class="n">objective_fn</span><span class="p">()</span>
+    <span class="n">losses</span> <span class="o">=</span> <span class="p">[</span><span class="n">loss</span><span class="o">.</span><span class="n">reshape</span><span class="p">(())</span> <span class="k">for</span> <span class="n">loss</span> <span class="ow">in</span> <span class="n">loss_list</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">losses</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Objective function returned an empty loss list.&quot;</span><span class="p">)</span>
+    <span class="n">total_loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">losses</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">logits</span><span class="p">,</span> <span class="n">total_loss</span><span class="p">,</span> <span class="p">[</span><span class="n">_safe_float</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span> <span class="k">for</span> <span class="n">loss</span> <span class="ow">in</span> <span class="n">losses</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">_evaluate_loss_value</span><span class="p">(</span><span class="n">objective_fn</span><span class="p">):</span>
+    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">total_loss</span><span class="p">,</span> <span class="n">loss_components</span> <span class="o">=</span> <span class="n">_evaluate_objective</span><span class="p">(</span><span class="n">objective_fn</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_safe_float</span><span class="p">(</span><span class="n">total_loss</span><span class="p">),</span> <span class="n">loss_components</span>
+
+
+<span class="k">def</span> <span class="nf">_collect_named_params</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">[(</span><span class="n">name</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">()</span> <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">requires_grad</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">_get_grad_sparsity_by_name</span><span class="p">(</span><span class="n">gradient_sparsity</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">gradient_sparsity</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gradient_sparsity</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">gradient_sparsity</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gradient_sparsity</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">gradient_sparsity</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">None</span>
+
+
+<span class="k">def</span> <span class="nf">_sample_noise_like</span><span class="p">(</span><span class="n">named_params</span><span class="p">,</span> <span class="n">random_seed</span><span class="p">,</span> <span class="n">gradient_sparsity</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">random_seed</span><span class="p">))</span>
+    <span class="n">device_type</span> <span class="o">=</span> <span class="n">named_params</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">device</span><span class="o">.</span><span class="n">type</span> <span class="k">if</span> <span class="n">named_params</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span>
+    <span class="n">sparse_rng</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Generator</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="n">device_type</span><span class="p">)</span>
+    <span class="n">sparse_rng</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">random_seed</span><span class="p">)</span> <span class="o">+</span> <span class="mi">104729</span><span class="p">)</span>
+
+    <span class="n">noises</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">named_params</span><span class="p">:</span>
+        <span class="n">noise</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span>
+            <span class="n">mean</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+            <span class="n">std</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+            <span class="n">size</span><span class="o">=</span><span class="n">param</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+            <span class="n">device</span><span class="o">=</span><span class="n">param</span><span class="o">.</span><span class="n">device</span><span class="p">,</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">param</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">grad_sparsity</span> <span class="o">=</span> <span class="n">_get_grad_sparsity_by_name</span><span class="p">(</span><span class="n">gradient_sparsity</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">grad_sparsity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">noise</span> <span class="o">=</span> <span class="n">noise</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+            <span class="n">noise</span><span class="p">[</span><span class="n">fast_random_mask_like</span><span class="p">(</span><span class="n">noise</span><span class="p">,</span> <span class="n">grad_sparsity</span><span class="p">,</span> <span class="n">generator</span><span class="o">=</span><span class="n">sparse_rng</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">noises</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">noise</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">noises</span>
+
+
+<span class="k">def</span> <span class="nf">_compute_first_order_gradient</span><span class="p">(</span><span class="n">objective_fn</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">total_loss</span><span class="p">,</span> <span class="n">loss_components</span> <span class="o">=</span> <span class="n">_evaluate_objective</span><span class="p">(</span><span class="n">objective_fn</span><span class="p">)</span>
+    <span class="n">grad_tensors</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">autograd</span><span class="o">.</span><span class="n">grad</span><span class="p">(</span><span class="n">total_loss</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">allow_unused</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">grads</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">param</span><span class="p">,</span> <span class="n">grad_tensor</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">grad_tensors</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">grad_tensor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">grads</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">param</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">grads</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">grad_tensor</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">clone</span><span class="p">())</span>
+    <span class="n">flat_grad</span> <span class="o">=</span> <span class="n">_flatten_tensors</span><span class="p">(</span><span class="n">grads</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;loss&quot;</span><span class="p">:</span> <span class="n">_safe_float</span><span class="p">(</span><span class="n">total_loss</span><span class="p">),</span>
+        <span class="s2">&quot;loss_components&quot;</span><span class="p">:</span> <span class="n">loss_components</span><span class="p">,</span>
+        <span class="s2">&quot;grad_tensors&quot;</span><span class="p">:</span> <span class="n">grads</span><span class="p">,</span>
+        <span class="s2">&quot;grad_flat&quot;</span><span class="p">:</span> <span class="n">flat_grad</span><span class="p">,</span>
+        <span class="s2">&quot;grad_norm&quot;</span><span class="p">:</span> <span class="n">_safe_float</span><span class="p">(</span><span class="n">flat_grad</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mi">2</span><span class="p">)),</span>
+    <span class="p">}</span>
+
+
+<span class="k">def</span> <span class="nf">_single_zo_estimate</span><span class="p">(</span>
+    <span class="n">objective_fn</span><span class="p">,</span>
+    <span class="n">named_params</span><span class="p">,</span>
+    <span class="n">zo_eps</span><span class="p">,</span>
+    <span class="n">perturbation_mode</span><span class="p">,</span>
+    <span class="n">q</span><span class="p">,</span>
+    <span class="n">random_seed</span><span class="p">,</span>
+    <span class="n">use_sign</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">gradient_sparsity</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">[</span><span class="n">param</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">named_params</span><span class="p">]</span>
+    <span class="n">saved_data</span> <span class="o">=</span> <span class="n">_clone_param_data</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+    <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">random_seed</span><span class="p">))</span>
+    <span class="n">grad_accumulator</span> <span class="o">=</span> <span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">param</span><span class="p">)</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">params</span><span class="p">]</span>
+    <span class="n">projected_grads</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">q_index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">q</span><span class="p">)):</span>
+            <span class="n">local_seed</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">rng</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="o">**</span><span class="mi">31</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span> <span class="o">+</span> <span class="n">q_index</span>
+            <span class="n">noises</span> <span class="o">=</span> <span class="n">_sample_noise_like</span><span class="p">(</span><span class="n">named_params</span><span class="p">,</span> <span class="n">local_seed</span><span class="p">,</span> <span class="n">gradient_sparsity</span><span class="o">=</span><span class="n">gradient_sparsity</span><span class="p">)</span>
+            <span class="n">_apply_direction</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">noises</span><span class="p">,</span> <span class="n">zo_eps</span><span class="p">)</span>
+            <span class="n">loss_plus</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_evaluate_loss_value</span><span class="p">(</span><span class="n">objective_fn</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">perturbation_mode</span> <span class="o">==</span> <span class="s2">&quot;one_side&quot;</span><span class="p">:</span>
+                <span class="n">_apply_direction</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">noises</span><span class="p">,</span> <span class="o">-</span><span class="n">zo_eps</span><span class="p">)</span>
+                <span class="n">loss_ref</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_evaluate_loss_value</span><span class="p">(</span><span class="n">objective_fn</span><span class="p">)</span>
+                <span class="n">projected_grad</span> <span class="o">=</span> <span class="p">(</span><span class="n">loss_plus</span> <span class="o">-</span> <span class="n">loss_ref</span><span class="p">)</span> <span class="o">/</span> <span class="n">zo_eps</span>
+            <span class="k">elif</span> <span class="n">perturbation_mode</span> <span class="o">==</span> <span class="s2">&quot;two_side&quot;</span><span class="p">:</span>
+                <span class="n">_apply_direction</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">noises</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">zo_eps</span><span class="p">)</span>
+                <span class="n">loss_minus</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_evaluate_loss_value</span><span class="p">(</span><span class="n">objective_fn</span><span class="p">)</span>
+                <span class="n">projected_grad</span> <span class="o">=</span> <span class="p">(</span><span class="n">loss_plus</span> <span class="o">-</span> <span class="n">loss_minus</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">zo_eps</span><span class="p">)</span>
+                <span class="n">_apply_direction</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">noises</span><span class="p">,</span> <span class="n">zo_eps</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported perturbation mode: </span><span class="si">{</span><span class="n">perturbation_mode</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="n">scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">projected_grad</span><span class="p">)</span> <span class="k">if</span> <span class="n">use_sign</span> <span class="k">else</span> <span class="n">projected_grad</span>
+            <span class="n">projected_grads</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">projected_grad</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">grad_tensor</span><span class="p">,</span> <span class="n">noise</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">grad_accumulator</span><span class="p">,</span> <span class="n">noises</span><span class="p">):</span>
+                <span class="n">grad_tensor</span><span class="o">.</span><span class="n">add_</span><span class="p">(</span><span class="n">noise</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">scale</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">q</span><span class="p">))</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">_restore_param_data</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">saved_data</span><span class="p">)</span>
+
+    <span class="n">grad_flat</span> <span class="o">=</span> <span class="n">_flatten_tensors</span><span class="p">(</span><span class="n">grad_accumulator</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;grad_tensors&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">tensor</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span> <span class="k">for</span> <span class="n">tensor</span> <span class="ow">in</span> <span class="n">grad_accumulator</span><span class="p">],</span>
+        <span class="s2">&quot;grad_flat&quot;</span><span class="p">:</span> <span class="n">grad_flat</span><span class="p">,</span>
+        <span class="s2">&quot;grad_norm&quot;</span><span class="p">:</span> <span class="n">_safe_float</span><span class="p">(</span><span class="n">grad_flat</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mi">2</span><span class="p">)),</span>
+        <span class="s2">&quot;projected_grad_mean&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">projected_grads</span><span class="p">))</span> <span class="k">if</span> <span class="n">projected_grads</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="s2">&quot;projected_grad_std&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">projected_grads</span><span class="p">))</span> <span class="k">if</span> <span class="n">projected_grads</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="p">}</span>
+
+
+<span class="k">def</span> <span class="nf">_compute_loss_after_step</span><span class="p">(</span><span class="n">objective_fn</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">direction_tensors</span><span class="p">,</span> <span class="n">step_size</span><span class="p">):</span>
+    <span class="n">saved_data</span> <span class="o">=</span> <span class="n">_clone_param_data</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">_apply_direction</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">direction_tensors</span><span class="p">,</span> <span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="n">step_size</span><span class="p">))</span>
+        <span class="n">loss_after</span><span class="p">,</span> <span class="n">loss_components_after</span> <span class="o">=</span> <span class="n">_evaluate_loss_value</span><span class="p">(</span><span class="n">objective_fn</span><span class="p">)</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">_restore_param_data</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">saved_data</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">loss_after</span><span class="p">,</span> <span class="n">loss_components_after</span>
+
+
+<span class="k">def</span> <span class="nf">summarize_surrogate_estimates</span><span class="p">(</span><span class="n">fo_flat</span><span class="p">,</span> <span class="n">zo_samples</span><span class="p">,</span> <span class="n">base_loss</span><span class="p">,</span> <span class="n">loss_after_fo</span><span class="p">,</span> <span class="n">loss_after_zo</span><span class="p">):</span>
+    <span class="n">fo_flat</span> <span class="o">=</span> <span class="n">fo_flat</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">zo_samples</span> <span class="o">=</span> <span class="n">zo_samples</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">zo_samples</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">zo_samples</span> <span class="o">=</span> <span class="n">zo_samples</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">zo_samples</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;zo_samples must be a 1D or 2D tensor, got shape </span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">zo_samples</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+    <span class="n">eps</span> <span class="o">=</span> <span class="mf">1e-12</span>
+    <span class="n">zo_mean_flat</span> <span class="o">=</span> <span class="n">zo_samples</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">centered</span> <span class="o">=</span> <span class="n">zo_samples</span> <span class="o">-</span> <span class="n">zo_mean_flat</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">variance_trace</span> <span class="o">=</span> <span class="n">centered</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">variance_mean_coordinate</span> <span class="o">=</span> <span class="n">centered</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+    <span class="n">fo_norm</span> <span class="o">=</span> <span class="n">fo_flat</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">zo_norm</span> <span class="o">=</span> <span class="n">zo_mean_flat</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">cosine</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">fo_flat</span><span class="p">,</span> <span class="n">zo_mean_flat</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">fo_norm</span> <span class="o">*</span> <span class="n">zo_norm</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)</span>
+    <span class="n">relative_l2_error</span> <span class="o">=</span> <span class="p">(</span><span class="n">zo_mean_flat</span> <span class="o">-</span> <span class="n">fo_flat</span><span class="p">)</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">fo_norm</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)</span>
+    <span class="n">sign_agreement</span> <span class="o">=</span> <span class="p">(</span><span class="n">zo_mean_flat</span><span class="o">.</span><span class="n">sign</span><span class="p">()</span> <span class="o">==</span> <span class="n">fo_flat</span><span class="o">.</span><span class="n">sign</span><span class="p">())</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">snr</span> <span class="o">=</span> <span class="n">zo_mean_flat</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="p">(</span><span class="n">variance_trace</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)</span>
+
+    <span class="n">loss_decrease_fo</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">base_loss</span> <span class="o">-</span> <span class="n">loss_after_fo</span><span class="p">)</span>
+    <span class="n">loss_decrease_zo</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">base_loss</span> <span class="o">-</span> <span class="n">loss_after_zo</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;fo_grad_norm&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">_safe_float</span><span class="p">(</span><span class="n">fo_norm</span><span class="p">)),</span>
+        <span class="s2">&quot;zo_grad_norm&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">_safe_float</span><span class="p">(</span><span class="n">zo_norm</span><span class="p">)),</span>
+        <span class="s2">&quot;cosine_similarity&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">_safe_float</span><span class="p">(</span><span class="n">cosine</span><span class="p">)),</span>
+        <span class="s2">&quot;norm_ratio&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">_safe_float</span><span class="p">(</span><span class="n">zo_norm</span> <span class="o">/</span> <span class="p">(</span><span class="n">fo_norm</span> <span class="o">+</span> <span class="n">eps</span><span class="p">))),</span>
+        <span class="s2">&quot;relative_l2_error&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">_safe_float</span><span class="p">(</span><span class="n">relative_l2_error</span><span class="p">)),</span>
+        <span class="s2">&quot;sign_agreement&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">_safe_float</span><span class="p">(</span><span class="n">sign_agreement</span><span class="p">)),</span>
+        <span class="s2">&quot;variance_trace&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">_safe_float</span><span class="p">(</span><span class="n">variance_trace</span><span class="p">)),</span>
+        <span class="s2">&quot;variance_mean_coordinate&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">_safe_float</span><span class="p">(</span><span class="n">variance_mean_coordinate</span><span class="p">)),</span>
+        <span class="s2">&quot;snr&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">_safe_float</span><span class="p">(</span><span class="n">snr</span><span class="p">)),</span>
+        <span class="s2">&quot;loss_decrease_fo&quot;</span><span class="p">:</span> <span class="n">loss_decrease_fo</span><span class="p">,</span>
+        <span class="s2">&quot;loss_decrease_zo&quot;</span><span class="p">:</span> <span class="n">loss_decrease_zo</span><span class="p">,</span>
+        <span class="s2">&quot;loss_decrease_ratio&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">loss_decrease_zo</span> <span class="o">/</span> <span class="p">(</span><span class="n">loss_decrease_fo</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)),</span>
+        <span class="s2">&quot;descent_success_zo&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">loss_after_zo</span> <span class="o">&lt;</span> <span class="n">base_loss</span><span class="p">),</span>
+    <span class="p">}</span>
+
+
+<div class="viewcode-block" id="analyze_surrogate_batch"><a class="viewcode-back" href="../../../api/analysis.html#infty.analysis.analyze_surrogate_batch">[docs]</a><span class="k">def</span> <span class="nf">analyze_surrogate_batch</span><span class="p">(</span>
+    <span class="n">objective_fn</span><span class="p">,</span>
+    <span class="n">model</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">estimator_name</span><span class="o">=</span><span class="s2">&quot;zo_sgd&quot;</span><span class="p">,</span>
+    <span class="n">zo_eps</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span>
+    <span class="n">perturbation_mode</span><span class="o">=</span><span class="s2">&quot;two_side&quot;</span><span class="p">,</span>
+    <span class="n">q</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">variance_seeds</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+    <span class="n">random_seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">step_size</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span>
+    <span class="n">gradient_sparsity</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="k">if</span> <span class="n">estimator_name</span> <span class="o">==</span> <span class="s2">&quot;forward_grad&quot;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;This analysis module currently supports zeroth-order estimators only, not forward_grad.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">variance_seeds</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;variance_seeds must be at least 1.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">q</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;q must be at least 1.&quot;</span><span class="p">)</span>
+
+    <span class="n">named_params</span> <span class="o">=</span> <span class="n">_collect_named_params</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">[</span><span class="n">param</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">named_params</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">params</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No trainable parameters found for surrogate analysis.&quot;</span><span class="p">)</span>
+
+    <span class="n">first_order</span> <span class="o">=</span> <span class="n">_compute_first_order_gradient</span><span class="p">(</span><span class="n">objective_fn</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+
+    <span class="n">use_sign</span> <span class="o">=</span> <span class="s2">&quot;sign&quot;</span> <span class="ow">in</span> <span class="n">estimator_name</span>
+    <span class="n">zo_estimates</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">seed_offset</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">variance_seeds</span><span class="p">)):</span>
+        <span class="n">zo_estimates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">_single_zo_estimate</span><span class="p">(</span>
+                <span class="n">objective_fn</span><span class="o">=</span><span class="n">objective_fn</span><span class="p">,</span>
+                <span class="n">named_params</span><span class="o">=</span><span class="n">named_params</span><span class="p">,</span>
+                <span class="n">zo_eps</span><span class="o">=</span><span class="n">zo_eps</span><span class="p">,</span>
+                <span class="n">perturbation_mode</span><span class="o">=</span><span class="n">perturbation_mode</span><span class="p">,</span>
+                <span class="n">q</span><span class="o">=</span><span class="n">q</span><span class="p">,</span>
+                <span class="n">random_seed</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">random_seed</span><span class="p">)</span> <span class="o">+</span> <span class="n">seed_offset</span><span class="p">,</span>
+                <span class="n">use_sign</span><span class="o">=</span><span class="n">use_sign</span><span class="p">,</span>
+                <span class="n">gradient_sparsity</span><span class="o">=</span><span class="n">gradient_sparsity</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="n">zo_stack</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">estimate</span><span class="p">[</span><span class="s2">&quot;grad_flat&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">estimate</span> <span class="ow">in</span> <span class="n">zo_estimates</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">zo_mean_flat</span> <span class="o">=</span> <span class="n">zo_stack</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">zo_mean_tensors</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">cursor</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
+        <span class="n">next_cursor</span> <span class="o">=</span> <span class="n">cursor</span> <span class="o">+</span> <span class="n">param</span><span class="o">.</span><span class="n">numel</span><span class="p">()</span>
+        <span class="n">zo_mean_tensors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">zo_mean_flat</span><span class="p">[</span><span class="n">cursor</span><span class="p">:</span><span class="n">next_cursor</span><span class="p">]</span><span class="o">.</span><span class="n">view_as</span><span class="p">(</span><span class="n">param</span><span class="p">)</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">clone</span><span class="p">())</span>
+        <span class="n">cursor</span> <span class="o">=</span> <span class="n">next_cursor</span>
+
+    <span class="n">fo_flat</span> <span class="o">=</span> <span class="n">first_order</span><span class="p">[</span><span class="s2">&quot;grad_flat&quot;</span><span class="p">]</span>
+
+    <span class="n">base_loss</span> <span class="o">=</span> <span class="n">first_order</span><span class="p">[</span><span class="s2">&quot;loss&quot;</span><span class="p">]</span>
+    <span class="n">loss_after_fo</span><span class="p">,</span> <span class="n">fo_components_after</span> <span class="o">=</span> <span class="n">_compute_loss_after_step</span><span class="p">(</span>
+        <span class="n">objective_fn</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">first_order</span><span class="p">[</span><span class="s2">&quot;grad_tensors&quot;</span><span class="p">],</span> <span class="n">step_size</span>
+    <span class="p">)</span>
+    <span class="n">loss_after_zo</span><span class="p">,</span> <span class="n">zo_components_after</span> <span class="o">=</span> <span class="n">_compute_loss_after_step</span><span class="p">(</span>
+        <span class="n">objective_fn</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">zo_mean_tensors</span><span class="p">,</span> <span class="n">step_size</span>
+    <span class="p">)</span>
+
+    <span class="n">summary_metrics</span> <span class="o">=</span> <span class="n">summarize_surrogate_estimates</span><span class="p">(</span>
+        <span class="n">fo_flat</span><span class="o">=</span><span class="n">fo_flat</span><span class="p">,</span>
+        <span class="n">zo_samples</span><span class="o">=</span><span class="n">zo_stack</span><span class="p">,</span>
+        <span class="n">base_loss</span><span class="o">=</span><span class="n">base_loss</span><span class="p">,</span>
+        <span class="n">loss_after_fo</span><span class="o">=</span><span class="n">loss_after_fo</span><span class="p">,</span>
+        <span class="n">loss_after_zo</span><span class="o">=</span><span class="n">loss_after_zo</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;base_loss&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">base_loss</span><span class="p">),</span>
+        <span class="s2">&quot;loss_components&quot;</span><span class="p">:</span> <span class="n">first_order</span><span class="p">[</span><span class="s2">&quot;loss_components&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;fo_grad_norm&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">first_order</span><span class="p">[</span><span class="s2">&quot;grad_norm&quot;</span><span class="p">]),</span>
+        <span class="s2">&quot;projected_grad_mean&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">estimate</span><span class="p">[</span><span class="s2">&quot;projected_grad_mean&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">estimate</span> <span class="ow">in</span> <span class="n">zo_estimates</span><span class="p">])),</span>
+        <span class="s2">&quot;projected_grad_std&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">estimate</span><span class="p">[</span><span class="s2">&quot;projected_grad_std&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">estimate</span> <span class="ow">in</span> <span class="n">zo_estimates</span><span class="p">])),</span>
+        <span class="s2">&quot;loss_after_fo_step&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">loss_after_fo</span><span class="p">),</span>
+        <span class="s2">&quot;loss_after_zo_step&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">loss_after_zo</span><span class="p">),</span>
+        <span class="s2">&quot;loss_components_after_fo_step&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">fo_components_after</span><span class="p">],</span>
+        <span class="s2">&quot;loss_components_after_zo_step&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">zo_components_after</span><span class="p">],</span>
+        <span class="s2">&quot;variance_seeds&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">variance_seeds</span><span class="p">),</span>
+        <span class="s2">&quot;q&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">q</span><span class="p">),</span>
+        <span class="s2">&quot;zo_eps&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">zo_eps</span><span class="p">),</span>
+        <span class="s2">&quot;step_size&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">step_size</span><span class="p">),</span>
+        <span class="s2">&quot;perturbation_mode&quot;</span><span class="p">:</span> <span class="n">perturbation_mode</span><span class="p">,</span>
+        <span class="s2">&quot;estimator_name&quot;</span><span class="p">:</span> <span class="n">estimator_name</span><span class="p">,</span>
+        <span class="s2">&quot;gradient_sparsity&quot;</span><span class="p">:</span> <span class="n">_serialize_gradient_sparsity</span><span class="p">(</span><span class="n">gradient_sparsity</span><span class="p">),</span>
+        <span class="o">**</span><span class="n">summary_metrics</span><span class="p">,</span>
+    <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="aggregate_records"><a class="viewcode-back" href="../../../api/analysis.html#infty.analysis.aggregate_records">[docs]</a><span class="k">def</span> <span class="nf">aggregate_records</span><span class="p">(</span><span class="n">records</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">records</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+
+    <span class="n">grouped</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">records</span><span class="p">:</span>
+        <span class="n">grouped</span><span class="p">[</span>
+            <span class="p">(</span>
+                <span class="n">record</span><span class="p">[</span><span class="s2">&quot;task&quot;</span><span class="p">],</span>
+                <span class="n">record</span><span class="p">[</span><span class="s2">&quot;split&quot;</span><span class="p">],</span>
+                <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;estimator_name&quot;</span><span class="p">,</span> <span class="s2">&quot;unknown&quot;</span><span class="p">),</span>
+                <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;perturbation_mode&quot;</span><span class="p">,</span> <span class="s2">&quot;unknown&quot;</span><span class="p">),</span>
+                <span class="nb">int</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;q&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span>
+                <span class="nb">float</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;zo_eps&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)),</span>
+                <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;gradient_sparsity&quot;</span><span class="p">,</span> <span class="s2">&quot;none&quot;</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
+
+    <span class="n">metric_keys</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;base_loss&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;fo_grad_norm&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;zo_grad_norm&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;cosine_similarity&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;norm_ratio&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;relative_l2_error&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;sign_agreement&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;variance_trace&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;variance_mean_coordinate&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;snr&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;projected_grad_mean&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;projected_grad_std&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;loss_after_fo_step&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;loss_after_zo_step&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;loss_decrease_fo&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;loss_decrease_zo&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;loss_decrease_ratio&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;descent_success_zo&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="n">summaries</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="p">(</span>
+        <span class="n">task</span><span class="p">,</span>
+        <span class="n">split</span><span class="p">,</span>
+        <span class="n">estimator_name</span><span class="p">,</span>
+        <span class="n">perturbation_mode</span><span class="p">,</span>
+        <span class="n">q</span><span class="p">,</span>
+        <span class="n">zo_eps</span><span class="p">,</span>
+        <span class="n">gradient_sparsity</span><span class="p">,</span>
+    <span class="p">),</span> <span class="n">split_records</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">grouped</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+        <span class="n">summary</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;task&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">task</span><span class="p">),</span>
+            <span class="s2">&quot;split&quot;</span><span class="p">:</span> <span class="n">split</span><span class="p">,</span>
+            <span class="s2">&quot;estimator_name&quot;</span><span class="p">:</span> <span class="n">estimator_name</span><span class="p">,</span>
+            <span class="s2">&quot;perturbation_mode&quot;</span><span class="p">:</span> <span class="n">perturbation_mode</span><span class="p">,</span>
+            <span class="s2">&quot;q&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">q</span><span class="p">),</span>
+            <span class="s2">&quot;zo_eps&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">zo_eps</span><span class="p">),</span>
+            <span class="s2">&quot;gradient_sparsity&quot;</span><span class="p">:</span> <span class="n">gradient_sparsity</span><span class="p">,</span>
+            <span class="s2">&quot;objective_type&quot;</span><span class="p">:</span> <span class="n">split_records</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;objective_type&quot;</span><span class="p">,</span> <span class="s2">&quot;unknown&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;split_source&quot;</span><span class="p">:</span> <span class="n">split_records</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;split_source&quot;</span><span class="p">,</span> <span class="s2">&quot;unknown&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;num_batches&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">split_records</span><span class="p">),</span>
+            <span class="s2">&quot;known_classes&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">split_records</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;known_classes&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)),</span>
+            <span class="s2">&quot;total_classes&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">split_records</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;total_classes&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)),</span>
+        <span class="p">}</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">metric_keys</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="n">key</span><span class="p">])</span> <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">split_records</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+            <span class="n">summary</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">_mean&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">values</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+            <span class="n">summary</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">_std&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">values</span><span class="o">.</span><span class="n">std</span><span class="p">())</span>
+        <span class="n">summaries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">summary</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">summaries</span></div>
+
+
+<div class="viewcode-block" id="save_records_as_json"><a class="viewcode-back" href="../../../api/analysis.html#infty.analysis.save_records_as_json">[docs]</a><span class="k">def</span> <span class="nf">save_records_as_json</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="n">payload</span><span class="p">):</span>
+    <span class="n">output_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
+    <span class="n">ensure_parent_dir</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">output_path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">handle</span><span class="p">:</span>
+        <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">payload</span><span class="p">,</span> <span class="n">handle</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="save_records_as_csv"><a class="viewcode-back" href="../../../api/analysis.html#infty.analysis.save_records_as_csv">[docs]</a><span class="k">def</span> <span class="nf">save_records_as_csv</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="n">rows</span><span class="p">):</span>
+    <span class="n">output_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">rows</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">ensure_parent_dir</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
+    <span class="n">fieldnames</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="k">with</span> <span class="n">output_path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">handle</span><span class="p">:</span>
+        <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictWriter</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span> <span class="n">fieldnames</span><span class="o">=</span><span class="n">fieldnames</span><span class="p">)</span>
+        <span class="n">writer</span><span class="o">.</span><span class="n">writeheader</span><span class="p">()</span>
+        <span class="n">writer</span><span class="o">.</span><span class="n">writerows</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="plot_summary_records"><a class="viewcode-back" href="../../../api/analysis.html#infty.analysis.plot_summary_records">[docs]</a><span class="k">def</span> <span class="nf">plot_summary_records</span><span class="p">(</span><span class="n">summary_records</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">title_prefix</span><span class="o">=</span><span class="s2">&quot;Surrogate Gradient Quality&quot;</span><span class="p">):</span>
+    <span class="n">output_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">summary_records</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">redirect_stderr</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">()),</span> <span class="n">redirect_stdout</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">()):</span>
+            <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="n">warning_path</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="s2">&quot;plot_warning.txt&quot;</span>
+        <span class="n">ensure_parent_dir</span><span class="p">(</span><span class="n">warning_path</span><span class="p">)</span>
+        <span class="n">warning_path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Plot generation skipped because matplotlib could not be imported:</span><span class="se">\n</span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">warning_path</span><span class="p">)]</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s2">&quot;seaborn-v0_8-whitegrid&quot;</span><span class="p">)</span>
+    <span class="n">config_groups</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="n">configs_per_split</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">set</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">summary_records</span><span class="p">:</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">record</span><span class="p">[</span><span class="s2">&quot;split&quot;</span><span class="p">],</span>
+            <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;q&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;zo_eps&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+            <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;gradient_sparsity&quot;</span><span class="p">,</span> <span class="s2">&quot;none&quot;</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="n">config_groups</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
+        <span class="n">configs_per_split</span><span class="p">[</span><span class="n">record</span><span class="p">[</span><span class="s2">&quot;split&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+    <span class="n">colors</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;current_task_train&quot;</span><span class="p">:</span> <span class="s2">&quot;#1f77b4&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;current_task_validation&quot;</span><span class="p">:</span> <span class="s2">&quot;#4c78a8&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;old_task_replay&quot;</span><span class="p">:</span> <span class="s2">&quot;#e45756&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;old_task_validation&quot;</span><span class="p">:</span> <span class="s2">&quot;#f58518&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="n">linestyles</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;--&quot;</span><span class="p">,</span> <span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="s2">&quot;-.&quot;</span><span class="p">]</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">metric_specs</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;cosine_similarity_mean&quot;</span><span class="p">,</span> <span class="s2">&quot;Cosine Similarity&quot;</span><span class="p">,</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span>
+        <span class="p">(</span><span class="s2">&quot;relative_l2_error_mean&quot;</span><span class="p">,</span> <span class="s2">&quot;Relative L2 Error&quot;</span><span class="p">,</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
+        <span class="p">(</span><span class="s2">&quot;snr_mean&quot;</span><span class="p">,</span> <span class="s2">&quot;SNR&quot;</span><span class="p">,</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]),</span>
+        <span class="p">(</span><span class="s2">&quot;variance_trace_mean&quot;</span><span class="p">,</span> <span class="s2">&quot;Estimator Variance&quot;</span><span class="p">,</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span>
+        <span class="p">(</span><span class="s2">&quot;loss_decrease_ratio_mean&quot;</span><span class="p">,</span> <span class="s2">&quot;Loss Decrease Ratio&quot;</span><span class="p">,</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
+        <span class="p">(</span><span class="s2">&quot;descent_success_zo_mean&quot;</span><span class="p">,</span> <span class="s2">&quot;ZO Descent Success&quot;</span><span class="p">,</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]),</span>
+    <span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">config_index</span><span class="p">,</span> <span class="p">((</span><span class="n">split</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">zo_eps</span><span class="p">,</span> <span class="n">gradient_sparsity</span><span class="p">),</span> <span class="n">records</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">config_groups</span><span class="o">.</span><span class="n">items</span><span class="p">())):</span>
+        <span class="n">records</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">records</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">item</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;task&quot;</span><span class="p">])</span>
+        <span class="n">tasks</span> <span class="o">=</span> <span class="p">[</span><span class="n">record</span><span class="p">[</span><span class="s2">&quot;task&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">records</span><span class="p">]</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">colors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">split</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">linestyle</span> <span class="o">=</span> <span class="n">linestyles</span><span class="p">[</span><span class="n">config_index</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">linestyles</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">configs_per_split</span><span class="p">[</span><span class="n">split</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="n">split</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">split</span><span class="si">}</span><span class="s2"> | q=</span><span class="si">{</span><span class="n">q</span><span class="si">}</span><span class="s2">, eps=</span><span class="si">{</span><span class="n">zo_eps</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">, sparsity=</span><span class="si">{</span><span class="n">gradient_sparsity</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">for</span> <span class="n">metric_key</span><span class="p">,</span> <span class="n">ylabel</span><span class="p">,</span> <span class="n">axis</span> <span class="ow">in</span> <span class="n">metric_specs</span><span class="p">:</span>
+            <span class="n">axis</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+                <span class="n">tasks</span><span class="p">,</span>
+                <span class="p">[</span><span class="n">record</span><span class="p">[</span><span class="n">metric_key</span><span class="p">]</span> <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">records</span><span class="p">],</span>
+                <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">,</span>
+                <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span>
+                <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+                <span class="n">linestyle</span><span class="o">=</span><span class="n">linestyle</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">axis</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">ylabel</span><span class="p">)</span>
+            <span class="n">axis</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Task&quot;</span><span class="p">)</span>
+    <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="o">-</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">1.05</span><span class="p">)</span>
+
+    <span class="n">handles</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_legend_handles_labels</span><span class="p">()</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">handles</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s2">&quot;upper center&quot;</span><span class="p">,</span> <span class="n">ncol</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">frameon</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="n">title_prefix</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">0.98</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">rect</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.93</span><span class="p">])</span>
+
+    <span class="n">pdf_path</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="s2">&quot;surrogate_quality_summary.pdf&quot;</span>
+    <span class="n">png_path</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="s2">&quot;surrogate_quality_summary.png&quot;</span>
+    <span class="n">ensure_parent_dir</span><span class="p">(</span><span class="n">pdf_path</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">pdf_path</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">&quot;tight&quot;</span><span class="p">)</span>
+    <span class="n">ensure_parent_dir</span><span class="p">(</span><span class="n">png_path</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">png_path</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">&quot;tight&quot;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">pdf_path</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">png_path</span><span class="p">)]</span></div>
+
+
+<span class="k">def</span> <span class="nf">plot_sweep_records</span><span class="p">(</span><span class="n">summary_records</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">title_prefix</span><span class="o">=</span><span class="s2">&quot;ZO Query / Eps / Sparsity Sweep&quot;</span><span class="p">):</span>
+    <span class="n">output_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">summary_records</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">redirect_stderr</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">()),</span> <span class="n">redirect_stdout</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">()):</span>
+            <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="n">warning_path</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="s2">&quot;sweep_plot_warning.txt&quot;</span>
+        <span class="n">ensure_parent_dir</span><span class="p">(</span><span class="n">warning_path</span><span class="p">)</span>
+        <span class="n">warning_path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Sweep plot generation skipped because matplotlib could not be imported:</span><span class="se">\n</span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">warning_path</span><span class="p">)]</span>
+
+    <span class="n">grouped</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">summary_records</span><span class="p">:</span>
+        <span class="n">grouped</span><span class="p">[</span>
+            <span class="p">(</span>
+                <span class="n">record</span><span class="p">[</span><span class="s2">&quot;task&quot;</span><span class="p">],</span>
+                <span class="n">record</span><span class="p">[</span><span class="s2">&quot;split&quot;</span><span class="p">],</span>
+                <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;zo_eps&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+                <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;gradient_sparsity&quot;</span><span class="p">,</span> <span class="s2">&quot;none&quot;</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
+
+    <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">metric_specs</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;cosine_similarity_mean&quot;</span><span class="p">,</span> <span class="s2">&quot;Cosine Similarity&quot;</span><span class="p">,</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+        <span class="p">(</span><span class="s2">&quot;variance_trace_mean&quot;</span><span class="p">,</span> <span class="s2">&quot;Estimator Variance&quot;</span><span class="p">,</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+        <span class="p">(</span><span class="s2">&quot;loss_decrease_ratio_mean&quot;</span><span class="p">,</span> <span class="s2">&quot;Loss Decrease Ratio&quot;</span><span class="p">,</span> <span class="n">axes</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span>
+    <span class="p">]</span>
+
+    <span class="k">for</span> <span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span> <span class="n">zo_eps</span><span class="p">,</span> <span class="n">gradient_sparsity</span><span class="p">),</span> <span class="n">records</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">grouped</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+        <span class="n">records</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">records</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">item</span><span class="p">:</span> <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;q&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">q_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;q&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">records</span><span class="p">]</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;task=</span><span class="si">{</span><span class="n">task</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">split</span><span class="si">}</span><span class="s2"> | eps=</span><span class="si">{</span><span class="n">zo_eps</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> | sparsity=</span><span class="si">{</span><span class="n">gradient_sparsity</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">for</span> <span class="n">metric_key</span><span class="p">,</span> <span class="n">ylabel</span><span class="p">,</span> <span class="n">axis</span> <span class="ow">in</span> <span class="n">metric_specs</span><span class="p">:</span>
+            <span class="n">axis</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">q_values</span><span class="p">,</span> <span class="p">[</span><span class="n">record</span><span class="p">[</span><span class="n">metric_key</span><span class="p">]</span> <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">records</span><span class="p">],</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+            <span class="n">axis</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;q&quot;</span><span class="p">)</span>
+            <span class="n">axis</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">ylabel</span><span class="p">)</span>
+
+    <span class="n">handles</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_legend_handles_labels</span><span class="p">()</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">handles</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s2">&quot;upper center&quot;</span><span class="p">,</span> <span class="n">ncol</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">frameon</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="n">title_prefix</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">1.05</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">rect</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.88</span><span class="p">])</span>
+
+    <span class="n">pdf_path</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="s2">&quot;zo_sweep_q_eps_sparsity.pdf&quot;</span>
+    <span class="n">png_path</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="s2">&quot;zo_sweep_q_eps_sparsity.png&quot;</span>
+    <span class="n">ensure_parent_dir</span><span class="p">(</span><span class="n">pdf_path</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">pdf_path</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">&quot;tight&quot;</span><span class="p">)</span>
+    <span class="n">ensure_parent_dir</span><span class="p">(</span><span class="n">png_path</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">png_path</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">&quot;tight&quot;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">pdf_path</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">png_path</span><span class="p">)]</span>
+
+
+<span class="k">def</span> <span class="nf">run_surrogate_sweep</span><span class="p">(</span>
+    <span class="n">objective_fn</span><span class="p">,</span>
+    <span class="n">model</span><span class="p">,</span>
+    <span class="n">output_dir</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">task</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">split</span><span class="o">=</span><span class="s2">&quot;diagnostic&quot;</span><span class="p">,</span>
+    <span class="n">q_values</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
+    <span class="n">eps_values</span><span class="o">=</span><span class="p">(</span><span class="mf">1e-4</span><span class="p">,</span> <span class="mf">3e-4</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="mf">3e-3</span><span class="p">,</span> <span class="mf">1e-2</span><span class="p">),</span>
+    <span class="n">sparsity_values</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,),</span>
+    <span class="n">estimator_name</span><span class="o">=</span><span class="s2">&quot;zo_sgd&quot;</span><span class="p">,</span>
+    <span class="n">perturbation_mode</span><span class="o">=</span><span class="s2">&quot;two_side&quot;</span><span class="p">,</span>
+    <span class="n">variance_seeds</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+    <span class="n">random_seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">step_size</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span>
+    <span class="n">metadata</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="n">output_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">metadata</span> <span class="ow">or</span> <span class="p">{})</span>
+    <span class="n">records</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">config_index</span><span class="p">,</span> <span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">zo_eps</span><span class="p">,</span> <span class="n">gradient_sparsity</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">product</span><span class="p">(</span><span class="n">q_values</span><span class="p">,</span> <span class="n">eps_values</span><span class="p">,</span> <span class="n">sparsity_values</span><span class="p">)):</span>
+        <span class="n">record</span> <span class="o">=</span> <span class="n">analyze_surrogate_batch</span><span class="p">(</span>
+            <span class="n">objective_fn</span><span class="o">=</span><span class="n">objective_fn</span><span class="p">,</span>
+            <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
+            <span class="n">estimator_name</span><span class="o">=</span><span class="n">estimator_name</span><span class="p">,</span>
+            <span class="n">zo_eps</span><span class="o">=</span><span class="n">zo_eps</span><span class="p">,</span>
+            <span class="n">perturbation_mode</span><span class="o">=</span><span class="n">perturbation_mode</span><span class="p">,</span>
+            <span class="n">q</span><span class="o">=</span><span class="n">q</span><span class="p">,</span>
+            <span class="n">variance_seeds</span><span class="o">=</span><span class="n">variance_seeds</span><span class="p">,</span>
+            <span class="n">random_seed</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">random_seed</span><span class="p">)</span> <span class="o">+</span> <span class="n">config_index</span> <span class="o">*</span> <span class="mi">1009</span><span class="p">,</span>
+            <span class="n">step_size</span><span class="o">=</span><span class="n">step_size</span><span class="p">,</span>
+            <span class="n">gradient_sparsity</span><span class="o">=</span><span class="n">gradient_sparsity</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">record</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;task&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">task</span><span class="p">),</span> <span class="s2">&quot;split&quot;</span><span class="p">:</span> <span class="n">split</span><span class="p">,</span> <span class="o">**</span><span class="n">metadata</span><span class="p">})</span>
+        <span class="n">records</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
+
+    <span class="n">summary_records</span> <span class="o">=</span> <span class="n">aggregate_records</span><span class="p">(</span><span class="n">records</span><span class="p">)</span>
+
+    <span class="n">records_json_path</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="s2">&quot;surrogate_quality_records.json&quot;</span>
+    <span class="n">records_csv_path</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="s2">&quot;surrogate_quality_records.csv&quot;</span>
+    <span class="n">summary_json_path</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="s2">&quot;surrogate_quality_summary.json&quot;</span>
+    <span class="n">summary_csv_path</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="s2">&quot;surrogate_quality_summary.csv&quot;</span>
+
+    <span class="n">save_records_as_json</span><span class="p">(</span><span class="n">records_json_path</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;records&quot;</span><span class="p">:</span> <span class="n">records</span><span class="p">})</span>
+    <span class="n">save_records_as_csv</span><span class="p">(</span><span class="n">records_csv_path</span><span class="p">,</span> <span class="n">records</span><span class="p">)</span>
+    <span class="n">save_records_as_json</span><span class="p">(</span><span class="n">summary_json_path</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;summary_records&quot;</span><span class="p">:</span> <span class="n">summary_records</span><span class="p">})</span>
+    <span class="n">save_records_as_csv</span><span class="p">(</span><span class="n">summary_csv_path</span><span class="p">,</span> <span class="n">summary_records</span><span class="p">)</span>
+
+    <span class="n">plot_paths</span> <span class="o">=</span> <span class="n">plot_summary_records</span><span class="p">(</span><span class="n">summary_records</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">)</span>
+    <span class="n">plot_paths</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">plot_sweep_records</span><span class="p">(</span><span class="n">summary_records</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;records&quot;</span><span class="p">:</span> <span class="n">records</span><span class="p">,</span>
+        <span class="s2">&quot;summary_records&quot;</span><span class="p">:</span> <span class="n">summary_records</span><span class="p">,</span>
+        <span class="s2">&quot;records_json_path&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">records_json_path</span><span class="p">),</span>
+        <span class="s2">&quot;records_csv_path&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">records_csv_path</span><span class="p">),</span>
+        <span class="s2">&quot;summary_json_path&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">summary_json_path</span><span class="p">),</span>
+        <span class="s2">&quot;summary_csv_path&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">summary_csv_path</span><span class="p">),</span>
+        <span class="s2">&quot;plot_paths&quot;</span><span class="p">:</span> <span class="n">plot_paths</span><span class="p">,</span>
+    <span class="p">}</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

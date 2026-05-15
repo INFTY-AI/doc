@@ -1,0 +1,298 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>infty.plot.visualize_loss_landscape &mdash; INFTY 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=e031e9a9"></script>
+      <script src="../../../_static/doctools.js?v=888ff710"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            INFTY
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer_guide.html">Developer Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">INFTY</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">infty.plot.visualize_loss_landscape</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for infty.plot.visualize_loss_landscape</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">matplotlib.ticker</span> <span class="k">as</span> <span class="nn">mticker</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">tqdm</span>
+
+<span class="kn">from</span> <span class="nn">infty.utils.hessian</span> <span class="kn">import</span> <span class="n">hessian</span>
+<span class="kn">from</span> <span class="nn">.paths</span> <span class="kn">import</span> <span class="n">DEFAULT_LANDSCAPE_DIR</span><span class="p">,</span> <span class="n">ensure_parent_dir</span>
+<span class="kn">from</span> <span class="nn">.source_utils</span> <span class="kn">import</span> <span class="n">resolve_source_name</span>
+
+
+<span class="n">DEFAULT_OUTPUT_DIR</span> <span class="o">=</span> <span class="n">DEFAULT_LANDSCAPE_DIR</span>
+
+
+<span class="k">def</span> <span class="nf">summarize_loss_surface</span><span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="n">lams_alpha</span><span class="p">,</span> <span class="n">lams_beta</span><span class="p">,</span> <span class="n">eigenvalues</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">taus</span><span class="o">=</span><span class="p">(</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)):</span>
+    <span class="n">Z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">lams_alpha</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">lams_alpha</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">lams_beta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">lams_beta</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">Z</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Z must be a 2D array, got shape </span><span class="si">{</span><span class="n">Z</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">Z</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">lams_alpha</span><span class="o">.</span><span class="n">size</span> <span class="ow">or</span> <span class="n">Z</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">lams_beta</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;Z shape must match the lengths of lams_alpha and lams_beta, &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;got </span><span class="si">{</span><span class="n">Z</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">lams_alpha</span><span class="o">.</span><span class="n">size</span><span class="si">}</span><span class="s2">, and </span><span class="si">{</span><span class="n">lams_beta</span><span class="o">.</span><span class="n">size</span><span class="si">}</span><span class="s2">.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="n">ci</span><span class="p">,</span> <span class="n">cj</span> <span class="o">=</span> <span class="n">Z</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">Z</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span>
+    <span class="n">z0</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">Z</span><span class="p">[</span><span class="n">ci</span><span class="p">,</span> <span class="n">cj</span><span class="p">])</span>
+    <span class="n">summary</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;loss_center&quot;</span><span class="p">:</span> <span class="n">z0</span><span class="p">,</span>
+        <span class="s2">&quot;loss_min&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">Z</span><span class="o">.</span><span class="n">min</span><span class="p">()),</span>
+        <span class="s2">&quot;loss_max&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">Z</span><span class="o">.</span><span class="n">max</span><span class="p">()),</span>
+        <span class="s2">&quot;r0_sharpness&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">Z</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">z0</span><span class="p">),</span>
+        <span class="s2">&quot;relative_r0_sharpness&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">((</span><span class="n">Z</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">z0</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">z0</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-12</span><span class="p">)),</span>
+    <span class="p">}</span>
+    <span class="k">for</span> <span class="n">tau</span> <span class="ow">in</span> <span class="n">taus</span><span class="p">:</span>
+        <span class="n">summary</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;basin_fraction_tau_</span><span class="si">{</span><span class="n">tau</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">Z</span> <span class="o">&lt;=</span> <span class="n">z0</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">tau</span><span class="p">)))</span>
+
+    <span class="k">if</span> <span class="n">Z</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">Z</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">da</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">lams_alpha</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">lams_alpha</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">db</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">lams_beta</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">lams_beta</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">d2a</span> <span class="o">=</span> <span class="p">(</span><span class="n">Z</span><span class="p">[</span><span class="n">ci</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">cj</span><span class="p">]</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">z0</span> <span class="o">+</span> <span class="n">Z</span><span class="p">[</span><span class="n">ci</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">cj</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">da</span> <span class="o">*</span> <span class="n">da</span><span class="p">)</span>
+        <span class="n">d2b</span> <span class="o">=</span> <span class="p">(</span><span class="n">Z</span><span class="p">[</span><span class="n">ci</span><span class="p">,</span> <span class="n">cj</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">z0</span> <span class="o">+</span> <span class="n">Z</span><span class="p">[</span><span class="n">ci</span><span class="p">,</span> <span class="n">cj</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">db</span> <span class="o">*</span> <span class="n">db</span><span class="p">)</span>
+        <span class="n">summary</span><span class="p">[</span><span class="s2">&quot;center_fd_trace_2d&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">d2a</span> <span class="o">+</span> <span class="n">d2b</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">eigenvalues</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">eigenvalues</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">eigenvalues</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">eigenvalues</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">summary</span><span class="p">[</span><span class="s2">&quot;lambda1&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">eigenvalues</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">eigenvalues</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">summary</span><span class="p">[</span><span class="s2">&quot;lambda2&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">eigenvalues</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">summary</span>
+
+
+<span class="k">def</span> <span class="nf">get_params</span><span class="p">(</span><span class="n">model_ori</span><span class="p">,</span> <span class="n">model_perb</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">m_orig</span><span class="p">,</span> <span class="n">m_perb</span><span class="p">,</span> <span class="n">d0</span><span class="p">,</span> <span class="n">d1</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">model_ori</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">model_perb</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">direction</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">direction</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="n">m_orig</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">d0</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+            <span class="n">m_perb</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">m_orig</span><span class="o">.</span><span class="n">data</span> <span class="o">+</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">d0</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span> <span class="o">+</span> <span class="n">beta</span> <span class="o">*</span> <span class="n">d1</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">model_perb</span>
+
+
+<div class="viewcode-block" id="visualize_loss_landscape"><a class="viewcode-back" href="../../../api/plot.html#infty.plot.visualize_loss_landscape">[docs]</a><span class="k">def</span> <span class="nf">visualize_loss_landscape</span><span class="p">(</span>
+    <span class="n">optimizer</span><span class="p">,</span>
+    <span class="n">model</span><span class="p">,</span>
+    <span class="n">create_loss_fn</span><span class="p">,</span>
+    <span class="n">loader</span><span class="p">,</span>
+    <span class="n">task</span><span class="p">,</span>
+    <span class="n">device</span><span class="p">,</span>
+    <span class="n">limit</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+    <span class="n">samples</span><span class="o">=</span><span class="mi">21</span><span class="p">,</span>
+    <span class="n">eigen_max_iter</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+    <span class="n">eigen_tol</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">dir_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">source_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="n">output_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span> <span class="k">if</span> <span class="n">output_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">Path</span><span class="p">(</span><span class="n">dir_path</span><span class="p">)</span> <span class="k">if</span> <span class="n">dir_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">DEFAULT_OUTPUT_DIR</span>
+    <span class="n">output_dir</span> <span class="o">=</span> <span class="n">output_dir</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+    <span class="n">optimizer_name</span> <span class="o">=</span> <span class="n">resolve_source_name</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">source_name</span><span class="o">=</span><span class="n">source_name</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;custom&quot;</span><span class="p">)</span>
+    <span class="n">save_dir</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="n">optimizer_name</span>
+
+    <span class="n">lams_alpha</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="n">limit</span><span class="p">,</span> <span class="n">limit</span><span class="p">,</span> <span class="n">samples</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">lams_beta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="n">limit</span><span class="p">,</span> <span class="n">limit</span><span class="p">,</span> <span class="n">samples</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">total_loss_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">was_training</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">training</span>
+    <span class="n">state_backup</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+
+        <span class="n">eigen_path</span> <span class="o">=</span> <span class="n">save_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;eigen_task</span><span class="si">{</span><span class="n">task</span><span class="si">}</span><span class="s2">.pt&quot;</span>
+        <span class="k">if</span> <span class="n">eigen_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[Hessian] Loading existing eigenvectors for task </span><span class="si">{</span><span class="n">task</span><span class="si">}</span><span class="s2"> ...&quot;</span><span class="p">)</span>
+            <span class="n">eigen_data</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">eigen_path</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+            <span class="n">top_eigenvalues</span> <span class="o">=</span> <span class="n">eigen_data</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;top_eigenvalues_task</span><span class="si">{</span><span class="n">task</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span>
+            <span class="n">top_eigenvector</span> <span class="o">=</span> <span class="n">eigen_data</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;top_eigenvector_task</span><span class="si">{</span><span class="n">task</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[Hessian] Loaded. Top eigenvalues: λ1 = </span><span class="si">{</span><span class="n">top_eigenvalues</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">, λ2 = </span><span class="si">{</span><span class="n">top_eigenvalues</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[Hessian] Computing top-2 eigenvectors for task </span><span class="si">{</span><span class="n">task</span><span class="si">}</span><span class="s2"> ...&quot;</span><span class="p">)</span>
+            <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">hessian_comp</span> <span class="o">=</span> <span class="n">hessian</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">create_loss_fn</span><span class="p">,</span> <span class="n">dataloader</span><span class="o">=</span><span class="n">loader</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+            <span class="n">top_eigenvalues</span><span class="p">,</span> <span class="n">top_eigenvector</span> <span class="o">=</span> <span class="n">hessian_comp</span><span class="o">.</span><span class="n">eigenvalues</span><span class="p">(</span>
+                <span class="n">maxIter</span><span class="o">=</span><span class="n">eigen_max_iter</span><span class="p">,</span>
+                <span class="n">tol</span><span class="o">=</span><span class="n">eigen_tol</span><span class="p">,</span>
+                <span class="n">top_n</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">elapsed_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[Hessian] Done. Time elapsed: </span><span class="si">{</span><span class="n">elapsed_time</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds.&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[Hessian] Top eigenvalues: λ1 = </span><span class="si">{</span><span class="n">top_eigenvalues</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">, λ2 = </span><span class="si">{</span><span class="n">top_eigenvalues</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="sa">f</span><span class="s2">&quot;top_eigenvalues_task</span><span class="si">{</span><span class="n">task</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">top_eigenvalues</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">&quot;top_eigenvector_task</span><span class="si">{</span><span class="n">task</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">top_eigenvector</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="n">ensure_parent_dir</span><span class="p">(</span><span class="n">eigen_path</span><span class="p">),</span>
+            <span class="p">)</span>
+
+        <span class="n">loss_path</span> <span class="o">=</span> <span class="n">save_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;loss_list_task</span><span class="si">{</span><span class="n">task</span><span class="si">}</span><span class="s2">.pt&quot;</span>
+        <span class="k">if</span> <span class="n">loss_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[Landscape] Loading existing loss surface for task </span><span class="si">{</span><span class="n">task</span><span class="si">}</span><span class="s2"> ...&quot;</span><span class="p">)</span>
+            <span class="n">loss_data</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">loss_path</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+            <span class="n">total_loss_list</span> <span class="o">=</span> <span class="n">loss_data</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;loss_list_task</span><span class="si">{</span><span class="n">task</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[Landscape] Loaded loss surface from </span><span class="si">{</span><span class="n">loss_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[Landscape] Sampling </span><span class="si">{</span><span class="n">samples</span><span class="si">}</span><span class="s2">x</span><span class="si">{</span><span class="n">samples</span><span class="si">}</span><span class="s2"> grid on loss surface ...&quot;</span><span class="p">)</span>
+            <span class="n">model_perb</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+            <span class="n">model_perb</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+
+            <span class="k">for</span> <span class="n">alpha</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="o">.</span><span class="n">tqdm</span><span class="p">(</span><span class="n">lams_alpha</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Alpha axis&quot;</span><span class="p">):</span>
+                <span class="n">row_loss_list</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">beta</span> <span class="ow">in</span> <span class="n">lams_beta</span><span class="p">:</span>
+                    <span class="n">model_perb</span> <span class="o">=</span> <span class="n">get_params</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">model_perb</span><span class="p">,</span> <span class="n">top_eigenvector</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+                    <span class="n">total_loss</span> <span class="o">=</span> <span class="mf">0.0</span>
+                    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span> <span class="ow">in</span> <span class="n">loader</span><span class="p">:</span>
+                        <span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">),</span> <span class="n">targets</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+                        <span class="n">loss_fn</span> <span class="o">=</span> <span class="n">create_loss_fn</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model_perb</span><span class="p">)</span>
+                        <span class="n">_</span><span class="p">,</span> <span class="n">loss_list</span> <span class="o">=</span> <span class="n">loss_fn</span><span class="p">()</span>
+                        <span class="n">total_loss</span> <span class="o">+=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">loss_list</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+                    <span class="n">row_loss_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">total_loss</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">loader</span><span class="p">))</span>
+                <span class="n">total_loss_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row_loss_list</span><span class="p">)</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">({</span><span class="sa">f</span><span class="s2">&quot;loss_list_task</span><span class="si">{</span><span class="n">task</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">total_loss_list</span><span class="p">},</span> <span class="n">ensure_parent_dir</span><span class="p">(</span><span class="n">loss_path</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[Landscape] Loss surface saved to </span><span class="si">{</span><span class="n">loss_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">clf</span><span class="p">()</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="s2">&quot;3d&quot;</span><span class="p">)</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;font.family&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;serif&quot;</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;mathtext.fontset&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;cm&quot;</span>
+
+        <span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">lams_alpha</span><span class="p">,</span> <span class="n">lams_beta</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s2">&quot;ij&quot;</span><span class="p">)</span>
+        <span class="n">Z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">total_loss_list</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot_surface</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="p">,</span> <span class="n">rstride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cstride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s2">&quot;none&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">view_init</span><span class="p">(</span><span class="n">elev</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">azim</span><span class="o">=-</span><span class="mi">130</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s2">&quot;major&quot;</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="mi">28</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">zaxis</span><span class="o">.</span><span class="n">set_major_formatter</span><span class="p">(</span><span class="n">mticker</span><span class="o">.</span><span class="n">FormatStrFormatter</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%.2f</span><span class="s2">&quot;</span><span class="p">))</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">13</span><span class="p">)</span>
+
+        <span class="n">metrics</span> <span class="o">=</span> <span class="n">summarize_loss_surface</span><span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="n">lams_alpha</span><span class="p">,</span> <span class="n">lams_beta</span><span class="p">,</span> <span class="n">eigenvalues</span><span class="o">=</span><span class="n">top_eigenvalues</span><span class="p">)</span>
+        <span class="n">metrics</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;optimizer_name&quot;</span><span class="p">:</span> <span class="n">optimizer_name</span><span class="p">,</span> <span class="s2">&quot;task&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">task</span><span class="p">)})</span>
+        <span class="n">metrics_path</span> <span class="o">=</span> <span class="n">save_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;landscape_metrics_task</span><span class="si">{</span><span class="n">task</span><span class="si">}</span><span class="s2">.json&quot;</span>
+        <span class="n">ensure_parent_dir</span><span class="p">(</span><span class="n">metrics_path</span><span class="p">)</span>
+        <span class="n">metrics_path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">metrics</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+
+        <span class="n">figure_path</span> <span class="o">=</span> <span class="n">save_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;loss_surface_task</span><span class="si">{</span><span class="n">task</span><span class="si">}</span><span class="s2">.pdf&quot;</span>
+        <span class="n">figure_png_path</span> <span class="o">=</span> <span class="n">save_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;loss_surface_task</span><span class="si">{</span><span class="n">task</span><span class="si">}</span><span class="s2">.png&quot;</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+        <span class="n">ensure_parent_dir</span><span class="p">(</span><span class="n">figure_path</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">figure_path</span><span class="p">)</span>
+        <span class="n">ensure_parent_dir</span><span class="p">(</span><span class="n">figure_png_path</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">figure_png_path</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;eigen_path&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">eigen_path</span><span class="p">),</span>
+            <span class="s2">&quot;loss_path&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">loss_path</span><span class="p">),</span>
+            <span class="s2">&quot;plot_path&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">figure_path</span><span class="p">),</span>
+            <span class="s2">&quot;plot_png_path&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">figure_png_path</span><span class="p">),</span>
+            <span class="s2">&quot;metrics_path&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">metrics_path</span><span class="p">),</span>
+        <span class="p">}</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_backup</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">was_training</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

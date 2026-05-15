@@ -1,0 +1,1850 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Optimization-centric toolkit for Continual AI">
+      
+      
+      
+        <link rel="canonical" href="https://INFTY-AI.github.io/doc/user_guide/">
+      
+      
+        <link rel="prev" href="../quickstart/">
+      
+      
+        <link rel="next" href="../api_reference/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/logo_mark.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+  
+  
+    <title>User Guide - INFTY Docs</title>
+  
+
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/brand.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#user-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="INFTY" class="md-header__button md-logo" aria-label="INFTY" data-md-component="logo">
+      
+  <img src="../assets/images/logo_mark.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic infty-brand">
+          <span class="infty-brand__lockup">
+            <a href=".." class="infty-brand__home" aria-label="INFTY home">
+              <span class="infty-brand__name">INFTY</span>
+            </a>
+            <span class="infty-brand__tagline">
+              ✨ "The path to AGI is continual, INFTY paves the way." ✨ - INFTY x AGI
+            </span>
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              User Guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/WanNaa/INFTY_demo" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    WanNaa/INFTY_demo
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../installation/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Installation
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../quickstart/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Quick Start
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  User Guide
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../api_reference/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  API Reference
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../examples/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Examples
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../developer_guide/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Developer Guide
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../architecture/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Architecture
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../troubleshooting/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Troubleshooting
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../citation/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Citation
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../roadmap/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Roadmap
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../changelog/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Changelog
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="INFTY" class="md-nav__button md-logo" aria-label="INFTY" data-md-component="logo">
+      
+  <img src="../assets/images/logo_mark.svg" alt="logo">
+
+    </a>
+    INFTY
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/WanNaa/INFTY_demo" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    WanNaa/INFTY_demo
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick Start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-infty-provides" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What INFTY provides
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#optimizer-wrapper-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optimizer wrapper model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#closure-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Closure contract
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Closure contract">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#single-objective-closure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Single-objective closure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multi-objective-closure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-objective closure
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#training-loop-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Training-loop pattern
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#geometry-reshaping-optimizers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Geometry reshaping optimizers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Geometry reshaping optimizers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#c-flat" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C-Flat
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sam-gsam-gam-looksam" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SAM, GSAM, GAM, LookSAM
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#zeroth-order-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Zeroth-order updates
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gradient-filtering-optimizers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gradient filtering optimizers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Gradient filtering optimizers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#unigrad-fs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UniGrad-FS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pcgrad-cagrad-gradvac-ogd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PCGrad, CAGrad, GradVac, OGD
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#visualization-utilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visualization utilities
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Visualization utilities">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#loss-landscape" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Loss landscape
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hessian-esd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hessian ESD
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#conflict-curves" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conflict curves
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#optimization-trajectory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optimization trajectory
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-utilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis utilities
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#choosing-an-optimizer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choosing an optimizer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reproducibility-recommendations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reproducibility recommendations
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api_reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developer_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../citation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Citation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-infty-provides" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What INFTY provides
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#optimizer-wrapper-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optimizer wrapper model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#closure-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Closure contract
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Closure contract">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#single-objective-closure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Single-objective closure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multi-objective-closure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-objective closure
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#training-loop-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Training-loop pattern
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#geometry-reshaping-optimizers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Geometry reshaping optimizers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Geometry reshaping optimizers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#c-flat" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C-Flat
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sam-gsam-gam-looksam" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SAM, GSAM, GAM, LookSAM
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#zeroth-order-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Zeroth-order updates
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gradient-filtering-optimizers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gradient filtering optimizers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Gradient filtering optimizers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#unigrad-fs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UniGrad-FS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pcgrad-cagrad-gradvac-ogd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PCGrad, CAGrad, GradVac, OGD
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#visualization-utilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visualization utilities
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Visualization utilities">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#loss-landscape" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Loss landscape
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hessian-esd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hessian ESD
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#conflict-curves" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conflict curves
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#optimization-trajectory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optimization trajectory
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-utilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis utilities
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#choosing-an-optimizer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choosing an optimizer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reproducibility-recommendations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reproducibility recommendations
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="user-guide">User Guide<a class="headerlink" href="#user-guide" title="Permanent link">&para;</a></h1>
+<p>This guide explains how to use INFTY in continual-learning experiments and custom PyTorch training pipelines.</p>
+<h2 id="what-infty-provides">What INFTY provides<a class="headerlink" href="#what-infty-provides" title="Permanent link">&para;</a></h2>
+<p>INFTY exposes three main types of functionality:</p>
+<ol>
+<li><strong>Optimizers</strong> under <code>infty.optim</code>;</li>
+<li><strong>Visualization utilities</strong> under <code>infty.plot</code>;</li>
+<li><strong>Analysis utilities</strong> under <code>infty.analysis</code>.</li>
+</ol>
+<p>The optimizer module contains three algorithm families:</p>
+<table>
+<thead>
+<tr>
+<th>Family</th>
+<th>Main purpose</th>
+<th>Public classes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Geometry reshaping</td>
+<td>Improve flatness/generalization and reshape local loss geometry.</td>
+<td><code>C_Flat</code>, <code>SAM</code>, <code>GSAM</code>, <code>GAM</code>, <code>LookSAM</code></td>
+</tr>
+<tr>
+<td>Zeroth-order updates</td>
+<td>Estimate update directions without standard backward gradients.</td>
+<td><code>ZeroFlow</code></td>
+</tr>
+<tr>
+<td>Gradient filtering</td>
+<td>Mitigate interference among objectives or tasks.</td>
+<td><code>UniGrad_FS</code>, <code>GradVac</code>, <code>OGD</code>, <code>PCGrad</code>, <code>CAGrad</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="optimizer-wrapper-model">Optimizer wrapper model<a class="headerlink" href="#optimizer-wrapper-model" title="Permanent link">&para;</a></h2>
+<p>INFTY optimizers usually wrap a base PyTorch optimizer.</p>
+<div class="highlight"><pre><span></span><code><span class="n">base_optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">SGD</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">momentum</span><span class="o">=</span><span class="mf">0.9</span><span class="p">)</span>
+<span class="n">optimizer</span> <span class="o">=</span> <span class="n">infty_optim</span><span class="o">.</span><span class="n">C_Flat</span><span class="p">(</span>
+    <span class="n">params</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span>
+    <span class="n">base_optimizer</span><span class="o">=</span><span class="n">base_optimizer</span><span class="p">,</span>
+    <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
+    <span class="n">args</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;rho&quot;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span> <span class="s2">&quot;lamb&quot;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">},</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>The base optimizer controls learning rate, parameter groups, weight decay, momentum, and other ordinary PyTorch optimizer settings. The INFTY wrapper controls the continual-learning or geometry-aware update logic.</p>
+<h2 id="closure-contract">Closure contract<a class="headerlink" href="#closure-contract" title="Permanent link">&para;</a></h2>
+<p>A valid closure returns:</p>
+<div class="highlight"><pre><span></span><code><span class="k">return</span> <span class="n">logits</span><span class="p">,</span> <span class="n">loss_list</span>
+</code></pre></div>
+<p>where:</p>
+<ul>
+<li><code>logits</code> is the model output or a task-specific output object;</li>
+<li><code>loss_list</code> is a list of scalar PyTorch tensors;</li>
+<li><code>sum(loss_list)</code> should be the total training objective unless the optimizer explicitly consumes separate losses.</li>
+</ul>
+<h3 id="single-objective-closure">Single-objective closure<a class="headerlink" href="#single-objective-closure" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">make_loss_fn</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">loss_fn</span><span class="p">():</span>
+        <span class="n">logits</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">targets</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">logits</span><span class="p">,</span> <span class="p">[</span><span class="n">loss</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">loss_fn</span>
+</code></pre></div>
+<h3 id="multi-objective-closure">Multi-objective closure<a class="headerlink" href="#multi-objective-closure" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">make_loss_fn</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">new_targets</span><span class="p">,</span> <span class="n">replay_targets</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">loss_fn</span><span class="p">():</span>
+        <span class="n">logits</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+        <span class="n">old_task_loss</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">replay_targets</span><span class="p">)</span>
+        <span class="n">new_task_loss</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">new_targets</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">logits</span><span class="p">,</span> <span class="p">[</span><span class="n">old_task_loss</span><span class="p">,</span> <span class="n">new_task_loss</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">loss_fn</span>
+</code></pre></div>
+<p>For <code>UniGrad_FS</code>, non-first tasks require exactly two losses: one old-task objective and one new-task objective.</p>
+<h2 id="training-loop-pattern">Training-loop pattern<a class="headerlink" href="#training-loop-pattern" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="k">for</span> <span class="n">task_id</span><span class="p">,</span> <span class="n">task_loader</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">task_loaders</span><span class="p">):</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span> <span class="ow">in</span> <span class="n">task_loader</span><span class="p">:</span>
+        <span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">),</span> <span class="n">targets</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">loss_fn</span> <span class="o">=</span> <span class="n">make_loss_fn</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span><span class="p">)</span>
+        <span class="n">optimizer</span><span class="o">.</span><span class="n">set_closure</span><span class="p">(</span><span class="n">loss_fn</span><span class="p">)</span>
+        <span class="n">logits</span><span class="p">,</span> <span class="n">loss_list</span> <span class="o">=</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+</code></pre></div>
+<p>Do not call <code>loss.backward()</code> outside the closure unless the optimizer documentation explicitly instructs otherwise.</p>
+<h2 id="geometry-reshaping-optimizers">Geometry reshaping optimizers<a class="headerlink" href="#geometry-reshaping-optimizers" title="Permanent link">&para;</a></h2>
+<p>Geometry reshaping methods are useful when the goal is to encourage flatter or more stable local loss geometry across continual-learning tasks.</p>
+<h3 id="c-flat">C-Flat<a class="headerlink" href="#c-flat" title="Permanent link">&para;</a></h3>
+<p><code>C_Flat</code> is the main flatness-aware optimizer exposed by INFTY.</p>
+<div class="highlight"><pre><span></span><code><span class="n">optimizer</span> <span class="o">=</span> <span class="n">infty_optim</span><span class="o">.</span><span class="n">C_Flat</span><span class="p">(</span>
+    <span class="n">params</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span>
+    <span class="n">base_optimizer</span><span class="o">=</span><span class="n">base_optimizer</span><span class="p">,</span>
+    <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
+    <span class="n">args</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;strategy&quot;</span><span class="p">:</span> <span class="s2">&quot;basic&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;rho&quot;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span>
+        <span class="s2">&quot;lamb&quot;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>
+    <span class="p">},</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Important arguments:</p>
+<table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>strategy</code></td>
+<td><code>"basic"</code> or <code>"plus"</code>.</td>
+</tr>
+<tr>
+<td><code>rho</code></td>
+<td>Perturbation radius.</td>
+</tr>
+<tr>
+<td><code>lamb</code></td>
+<td>Aggregation coefficient.</td>
+</tr>
+<tr>
+<td><code>rho_scheduler</code></td>
+<td>Optional scheduler for perturbation radius.</td>
+</tr>
+<tr>
+<td><code>adaptive</code></td>
+<td>Whether to use adaptive perturbations scaled by parameter magnitude.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="sam-gsam-gam-looksam">SAM, GSAM, GAM, LookSAM<a class="headerlink" href="#sam-gsam-gam-looksam" title="Permanent link">&para;</a></h3>
+<p>These classes expose related geometry-aware optimization strategies. They follow the same wrapping logic: create a base optimizer, pass model parameters and the model, set a closure, then call <code>step()</code>.</p>
+<h2 id="zeroth-order-updates">Zeroth-order updates<a class="headerlink" href="#zeroth-order-updates" title="Permanent link">&para;</a></h2>
+<p><code>ZeroFlow</code> supports zeroth-order and forward-gradient update variants. It is intended for settings where ordinary backpropagation is expensive, unavailable, or undesirable.</p>
+<div class="highlight"><pre><span></span><code><span class="n">optimizer</span> <span class="o">=</span> <span class="n">infty_optim</span><span class="o">.</span><span class="n">ZeroFlow</span><span class="p">(</span>
+    <span class="n">params</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span>
+    <span class="n">base_optimizer</span><span class="o">=</span><span class="n">base_optimizer</span><span class="p">,</span>
+    <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
+    <span class="n">args</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;inftyopt&quot;</span><span class="p">:</span> <span class="s2">&quot;zo_sgd&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;q&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s2">&quot;zo_eps&quot;</span><span class="p">:</span> <span class="mf">1e-3</span><span class="p">,</span>
+        <span class="s2">&quot;perturbation_mode&quot;</span><span class="p">:</span> <span class="s2">&quot;two_side&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;memory_efficient&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">},</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Supported <code>inftyopt</code> values include:</p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>zo_sgd</code></td>
+<td>Zeroth-order update with SGD-style base optimizer.</td>
+</tr>
+<tr>
+<td><code>zo_adam</code></td>
+<td>Zeroth-order update with Adam-style base optimizer.</td>
+</tr>
+<tr>
+<td><code>zo_sgd_sign</code></td>
+<td>Sign version of the zeroth-order update.</td>
+</tr>
+<tr>
+<td><code>zo_adam_sign</code></td>
+<td>Sign version with Adam-style base optimizer.</td>
+</tr>
+<tr>
+<td><code>zo_sgd_conserve</code></td>
+<td>Conservative update that rejects harmful moves.</td>
+</tr>
+<tr>
+<td><code>zo_adam_conserve</code></td>
+<td>Conservative update with Adam-style base optimizer.</td>
+</tr>
+<tr>
+<td><code>forward_grad</code></td>
+<td>Forward-gradient update path.</td>
+</tr>
+</tbody>
+</table>
+<p>Important arguments:</p>
+<table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>q</code></td>
+<td>Number of zeroth-order query directions.</td>
+</tr>
+<tr>
+<td><code>zo_eps</code></td>
+<td>Finite-difference perturbation size.</td>
+</tr>
+<tr>
+<td><code>perturbation_mode</code></td>
+<td><code>"one_side"</code> or <code>"two_side"</code>.</td>
+</tr>
+<tr>
+<td><code>use_history_grad</code></td>
+<td>Whether to smooth estimated directions over time.</td>
+</tr>
+<tr>
+<td><code>alpha</code></td>
+<td>Smoothing coefficient for historical directions.</td>
+</tr>
+<tr>
+<td><code>gradient_sparsity</code></td>
+<td>Optional float or dictionary controlling random sparsity masks.</td>
+</tr>
+<tr>
+<td><code>memory_efficient</code></td>
+<td>Recompute noise instead of storing it.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="gradient-filtering-optimizers">Gradient filtering optimizers<a class="headerlink" href="#gradient-filtering-optimizers" title="Permanent link">&para;</a></h2>
+<p>Gradient filtering methods are useful when multiple objectives interfere with each other, which is common in replay-based or multi-loss continual learning.</p>
+<h3 id="unigrad-fs">UniGrad-FS<a class="headerlink" href="#unigrad-fs" title="Permanent link">&para;</a></h3>
+<p><code>UniGrad_FS</code> handles gradient projection with a flatter-sharpness mechanism. For tasks after the first task, it expects exactly two objective terms.</p>
+<div class="highlight"><pre><span></span><code><span class="n">optimizer</span> <span class="o">=</span> <span class="n">infty_optim</span><span class="o">.</span><span class="n">UniGrad_FS</span><span class="p">(</span>
+    <span class="n">params</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span>
+    <span class="n">base_optimizer</span><span class="o">=</span><span class="n">base_optimizer</span><span class="p">,</span>
+    <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
+    <span class="n">args</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;task_id&quot;</span><span class="p">:</span> <span class="n">task_id</span><span class="p">,</span>
+        <span class="s2">&quot;utype&quot;</span><span class="p">:</span> <span class="s2">&quot;model-wise&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;S_T&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">],</span>
+        <span class="s2">&quot;beta&quot;</span><span class="p">:</span> <span class="mf">0.9</span><span class="p">,</span>
+        <span class="s2">&quot;rho&quot;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span>
+    <span class="p">},</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Important arguments:</p>
+<table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>task_id</code></td>
+<td>Current task index. Task <code>0</code> uses ordinary summed-loss behavior.</td>
+</tr>
+<tr>
+<td><code>utype</code></td>
+<td><code>"model-wise"</code> or <code>"layer-wise"</code> gradient handling.</td>
+</tr>
+<tr>
+<td><code>S_T</code></td>
+<td>Similarity threshold. A scalar list such as <code>[0.1]</code> is accepted for model-wise mode.</td>
+</tr>
+<tr>
+<td><code>beta</code></td>
+<td>Threshold update coefficient.</td>
+</tr>
+<tr>
+<td><code>rho</code></td>
+<td>Perturbation radius used by the flatter-sharpness component.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="pcgrad-cagrad-gradvac-ogd">PCGrad, CAGrad, GradVac, OGD<a class="headerlink" href="#pcgrad-cagrad-gradvac-ogd" title="Permanent link">&para;</a></h3>
+<p>These optimizers follow the same multi-objective wrapper style. They are useful baselines or alternatives when analyzing task-gradient interference.</p>
+<h2 id="visualization-utilities">Visualization utilities<a class="headerlink" href="#visualization-utilities" title="Permanent link">&para;</a></h2>
+<h3 id="loss-landscape">Loss landscape<a class="headerlink" href="#loss-landscape" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">infty</span> <span class="kn">import</span> <span class="n">plot</span> <span class="k">as</span> <span class="n">infty_plot</span>
+
+<span class="n">infty_plot</span><span class="o">.</span><span class="n">visualize_landscape</span><span class="p">(</span>
+    <span class="n">optimizer</span><span class="o">=</span><span class="n">optimizer</span><span class="p">,</span>
+    <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
+    <span class="n">create_loss_fn</span><span class="o">=</span><span class="n">create_loss_fn</span><span class="p">,</span>
+    <span class="n">loader</span><span class="o">=</span><span class="n">train_loader</span><span class="p">,</span>
+    <span class="n">task</span><span class="o">=</span><span class="n">task_id</span><span class="p">,</span>
+    <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;workdirs/plots/diagnostics/landscape/demo&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<h3 id="hessian-esd">Hessian ESD<a class="headerlink" href="#hessian-esd" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">infty_plot</span><span class="o">.</span><span class="n">visualize_esd</span><span class="p">(</span>
+    <span class="n">optimizer</span><span class="o">=</span><span class="n">optimizer</span><span class="p">,</span>
+    <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
+    <span class="n">create_loss_fn</span><span class="o">=</span><span class="n">create_loss_fn</span><span class="p">,</span>
+    <span class="n">loader</span><span class="o">=</span><span class="n">train_loader</span><span class="p">,</span>
+    <span class="n">task</span><span class="o">=</span><span class="n">task_id</span><span class="p">,</span>
+    <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;workdirs/plots/diagnostics/esd/demo&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<h3 id="conflict-curves">Conflict curves<a class="headerlink" href="#conflict-curves" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">infty_plot</span><span class="o">.</span><span class="n">visualize_conflicts</span><span class="p">(</span>
+    <span class="n">optimizer</span><span class="o">=</span><span class="n">optimizer</span><span class="p">,</span>
+    <span class="n">task</span><span class="o">=</span><span class="n">task_id</span><span class="p">,</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;workdirs/plots/diagnostics/conflicts/demo&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>The optimizer must expose <code>sim_list</code> or <code>sim_arr</code>. <code>UniGrad_FS</code> records similarity values through <code>sim_list</code>.</p>
+<h3 id="optimization-trajectory">Optimization trajectory<a class="headerlink" href="#optimization-trajectory" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">infty_plot</span><span class="o">.</span><span class="n">visualize_trajectory</span><span class="p">(</span>
+    <span class="n">optimizer_name</span><span class="o">=</span><span class="s2">&quot;cagrad&quot;</span><span class="p">,</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;workdirs/plots/diagnostics/trajectory/demo&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<h2 id="analysis-utilities">Analysis utilities<a class="headerlink" href="#analysis-utilities" title="Permanent link">&para;</a></h2>
+<p>The <code>infty.analysis</code> module includes tools for surrogate-gradient quality analysis. These utilities are most useful for evaluating zeroth-order estimators against first-order gradients.</p>
+<p>Typical workflow:</p>
+<ol>
+<li>define an <code>objective_fn</code> that returns <code>(logits, loss_list)</code>;</li>
+<li>call <code>analyze_surrogate_batch</code> on one batch;</li>
+<li>collect records across batches or tasks;</li>
+<li>aggregate and save results with <code>aggregate_records</code>, <code>save_records_as_json</code>, and <code>save_records_as_csv</code>;</li>
+<li>plot summaries with <code>plot_summary_records</code>.</li>
+</ol>
+<h2 id="choosing-an-optimizer">Choosing an optimizer<a class="headerlink" href="#choosing-an-optimizer" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Situation</th>
+<th>Suggested starting point</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Need a flatness-aware baseline</td>
+<td><code>C_Flat</code> or <code>SAM</code></td>
+</tr>
+<tr>
+<td>Need continual-learning flatness behavior</td>
+<td><code>C_Flat</code></td>
+</tr>
+<tr>
+<td>Need backprop-free or gradient-free updates</td>
+<td><code>ZeroFlow</code></td>
+</tr>
+<tr>
+<td>Need old/new task objective balancing</td>
+<td><code>UniGrad_FS</code></td>
+</tr>
+<tr>
+<td>Need multi-objective baselines</td>
+<td><code>PCGrad</code>, <code>CAGrad</code>, <code>GradVac</code>, <code>OGD</code></td>
+</tr>
+<tr>
+<td>Need diagnostics only</td>
+<td><code>infty.plot</code> and <code>infty.analysis</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="reproducibility-recommendations">Reproducibility recommendations<a class="headerlink" href="#reproducibility-recommendations" title="Permanent link">&para;</a></h2>
+<p>For every experiment, record:</p>
+<ul>
+<li>INFTY version or commit hash;</li>
+<li>PyTorch version;</li>
+<li>optimizer class and <code>args</code> dictionary;</li>
+<li>base optimizer and its hyperparameters;</li>
+<li>random seed;</li>
+<li>task order and dataset split;</li>
+<li>output directory for plots and analysis artifacts.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy", "search.suggest", "search.highlight"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
