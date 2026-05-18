@@ -1383,17 +1383,17 @@
 <h1 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">&para;</a></h1>
 <p>This reference documents the public interfaces exposed by INFTY. It focuses on arguments, return values, and closure conventions rather than algorithm derivations.</p>
 <h2 id="imports">Imports<a class="headerlink" href="#imports" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">infty</span> <span class="kn">import</span> <span class="n">optim</span> <span class="k">as</span> <span class="n">infty_optim</span>
-<span class="kn">from</span> <span class="nn">infty</span> <span class="kn">import</span> <span class="n">plot</span> <span class="k">as</span> <span class="n">infty_plot</span>
-<span class="kn">from</span> <span class="nn">infty</span> <span class="kn">import</span> <span class="n">analysis</span> <span class="k">as</span> <span class="n">infty_analysis</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">infty</span><span class="w"> </span><span class="kn">import</span> <span class="n">optim</span> <span class="k">as</span> <span class="n">infty_optim</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">infty</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot</span> <span class="k">as</span> <span class="n">infty_plot</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">infty</span><span class="w"> </span><span class="kn">import</span> <span class="n">analysis</span> <span class="k">as</span> <span class="n">infty_analysis</span>
 </code></pre></div>
 <p>or:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">infty.optim</span> <span class="kn">import</span> <span class="n">C_Flat</span><span class="p">,</span> <span class="n">ZeroFlow</span><span class="p">,</span> <span class="n">UniGrad_FS</span>
-<span class="kn">from</span> <span class="nn">infty.plot</span> <span class="kn">import</span> <span class="n">visualize_landscape</span><span class="p">,</span> <span class="n">visualize_esd</span><span class="p">,</span> <span class="n">visualize_conflicts</span><span class="p">,</span> <span class="n">visualize_trajectory</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">infty.optim</span><span class="w"> </span><span class="kn">import</span> <span class="n">C_Flat</span><span class="p">,</span> <span class="n">ZeroFlow</span><span class="p">,</span> <span class="n">UniGrad_FS</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">infty.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">visualize_landscape</span><span class="p">,</span> <span class="n">visualize_esd</span><span class="p">,</span> <span class="n">visualize_conflicts</span><span class="p">,</span> <span class="n">visualize_trajectory</span>
 </code></pre></div>
 <h2 id="closure-contract">Closure contract<a class="headerlink" href="#closure-contract" title="Permanent link">&para;</a></h2>
 <p>Most optimizer APIs expect a closure with this format:</p>
-<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">loss_fn</span><span class="p">():</span>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">loss_fn</span><span class="p">():</span>
     <span class="n">logits</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
     <span class="n">loss_1</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">targets</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">logits</span><span class="p">,</span> <span class="p">[</span><span class="n">loss_1</span><span class="p">]</span>

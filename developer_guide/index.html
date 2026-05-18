@@ -1326,15 +1326,15 @@ mkdocs<span class="w"> </span>build<span class="w"> </span>--strict
 <ol>
 <li>Inherit from <code>InftyBaseOptimizer</code> when possible.</li>
 </ol>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">InftyBaseOptimizer</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">InftyBaseOptimizer</span>
 
-<span class="k">class</span> <span class="nc">MyOptimizer</span><span class="p">(</span><span class="n">InftyBaseOptimizer</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">base_optimizer</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MyOptimizer</span><span class="p">(</span><span class="n">InftyBaseOptimizer</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">base_optimizer</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">base_optimizer</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;my_optimizer&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="n">args</span>
 
-    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">closure</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">delay</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">closure</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">delay</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">closure</span><span class="p">:</span>
             <span class="n">get_grad</span> <span class="o">=</span> <span class="n">closure</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1346,7 +1346,7 @@ mkdocs<span class="w"> </span>build<span class="w"> </span>--strict
 <ol>
 <li>Export it from <code>src/infty/optim/__init__.py</code>:</li>
 </ol>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">.geometry_reshaping.my_optimizer</span> <span class="kn">import</span> <span class="n">MyOptimizer</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">.geometry_reshaping.my_optimizer</span><span class="w"> </span><span class="kn">import</span> <span class="n">MyOptimizer</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="o">...</span><span class="p">,</span>
@@ -1366,15 +1366,15 @@ mkdocs<span class="w"> </span>build<span class="w"> </span>--strict
 <ol>
 <li>Inherit from <code>EasyCLMultiObjOptimizer</code> when the optimizer needs flattened gradient utilities.</li>
 </ol>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">infty.optim.gradient_filtering.base</span> <span class="kn">import</span> <span class="n">EasyCLMultiObjOptimizer</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">infty.optim.gradient_filtering.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">EasyCLMultiObjOptimizer</span>
 
-<span class="k">class</span> <span class="nc">MyMultiObjectiveOptimizer</span><span class="p">(</span><span class="n">EasyCLMultiObjOptimizer</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">base_optimizer</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MyMultiObjectiveOptimizer</span><span class="p">(</span><span class="n">EasyCLMultiObjOptimizer</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">base_optimizer</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">base_optimizer</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;my_multi_obj&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="n">args</span>
 
-    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">closure</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">delay</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">closure</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">delay</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="n">get_grad</span> <span class="o">=</span> <span class="n">closure</span> <span class="k">if</span> <span class="n">closure</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward_func</span>
         <span class="n">logits</span><span class="p">,</span> <span class="n">loss_list</span> <span class="o">=</span> <span class="n">get_grad</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_compute_grad_dim</span><span class="p">()</span>
@@ -1429,14 +1429,14 @@ mkdocs<span class="w"> </span>build<span class="w"> </span>--strict
 <li>analysis regression tests using one tiny batch.</li>
 </ul>
 <p>Example optimizer regression test:</p>
-<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">test_cflat_one_step</span><span class="p">():</span>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_cflat_one_step</span><span class="p">():</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
     <span class="n">inputs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
     <span class="n">targets</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="p">(</span><span class="mi">8</span><span class="p">,))</span>
     <span class="n">base</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">SGD</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
     <span class="n">opt</span> <span class="o">=</span> <span class="n">C_Flat</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">base</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;rho&quot;</span><span class="p">:</span> <span class="mf">0.01</span><span class="p">})</span>
 
-    <span class="k">def</span> <span class="nf">loss_fn</span><span class="p">():</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">loss_fn</span><span class="p">():</span>
         <span class="n">logits</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
         <span class="n">loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">cross_entropy</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">targets</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">logits</span><span class="p">,</span> <span class="p">[</span><span class="n">loss</span><span class="p">]</span>
