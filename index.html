@@ -60,6 +60,27 @@
 
     
     
+  
+  
+    <script>
+      (() => {
+        const sourceKey = `${__md_scope.pathname}.__source`;
+        const sourceRepoKey = `${__md_scope.pathname}.__source_repo`;
+        const currentRepo = "https://github.com/THUDM/INFTY";
+        try {
+          const cachedRepo = JSON.parse(sessionStorage.getItem(sourceRepoKey) || "null");
+          if (cachedRepo !== currentRepo) {
+            sessionStorage.removeItem(sourceKey);
+            sessionStorage.setItem(sourceRepoKey, JSON.stringify(currentRepo));
+          }
+        } catch (_) {
+          sessionStorage.removeItem(sourceKey);
+          sessionStorage.setItem(sourceRepoKey, JSON.stringify(currentRepo));
+        }
+      })();
+    </script>
+  
+
   </head>
   
   
