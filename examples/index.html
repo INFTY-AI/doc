@@ -1178,10 +1178,11 @@
 <p>This page lists runnable examples and recommended experiment entry points.</p>
 <h2 id="pilot-demo">PILOT demo<a class="headerlink" href="#pilot-demo" title="Permanent link">&para;</a></h2>
 <p>The repository includes a PILOT-based example under <code>workdirs/PILOT</code>.</p>
-<p>Install optional dependencies:</p>
+<p>Install the PILOT/demo dependencies from the repository root:</p>
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>INFTY_demo
-python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>.<span class="o">[</span>examples<span class="o">]</span>
+python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;.[examples]&quot;</span>
 </code></pre></div>
+<p>The minimal scripts under <code>examples/infty_minimal/</code> do not require this extra.</p>
 <p>Run C-Flat:</p>
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>workdirs/PILOT
 python<span class="w"> </span>main.py<span class="w"> </span>--config<span class="o">=</span>exps/memo_scr.json<span class="w"> </span>--inftyopt<span class="o">=</span>c_flat<span class="w"> </span>--workdir<span class="w"> </span>../results/memo_cflat

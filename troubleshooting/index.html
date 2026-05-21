@@ -865,10 +865,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#modulenotfounderror-for-optional-example-dependencies" class="md-nav__link">
+  <a href="#modulenotfounderror-for-pilotdemo-dependencies" class="md-nav__link">
     <span class="md-ellipsis">
       
-        ModuleNotFoundError for optional example dependencies
+        ModuleNotFoundError for PILOT/demo dependencies
       
     </span>
   </a>
@@ -1199,10 +1199,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#modulenotfounderror-for-optional-example-dependencies" class="md-nav__link">
+  <a href="#modulenotfounderror-for-pilotdemo-dependencies" class="md-nav__link">
     <span class="md-ellipsis">
       
-        ModuleNotFoundError for optional example dependencies
+        ModuleNotFoundError for PILOT/demo dependencies
       
     </span>
   </a>
@@ -1383,9 +1383,9 @@ python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </sp
 <p>Install or reinstall:</p>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
 </code></pre></div>
-<h2 id="modulenotfounderror-for-optional-example-dependencies"><code>ModuleNotFoundError</code> for optional example dependencies<a class="headerlink" href="#modulenotfounderror-for-optional-example-dependencies" title="Permanent link">&para;</a></h2>
-<p>The PILOT demo and some examples require optional dependencies.</p>
-<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>.<span class="o">[</span>examples<span class="o">]</span>
+<h2 id="modulenotfounderror-for-pilotdemo-dependencies"><code>ModuleNotFoundError</code> for PILOT/demo dependencies<a class="headerlink" href="#modulenotfounderror-for-pilotdemo-dependencies" title="Permanent link">&para;</a></h2>
+<p>The PILOT demo and some optional workflows require the <code>examples</code> extra. The minimal scripts under <code>examples/infty_minimal/</code> do not. From a source checkout, run this from the repository root:</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;.[examples]&quot;</span>
 </code></pre></div>
 <h2 id="optimizer-does-not-update-parameters">Optimizer does not update parameters<a class="headerlink" href="#optimizer-does-not-update-parameters" title="Permanent link">&para;</a></h2>
 <p>Check that:</p>
