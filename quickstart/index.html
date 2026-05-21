@@ -539,32 +539,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#minimal-zeroflow-example" class="md-nav__link">
+  <a href="#more-runnable-examples" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Minimal ZeroFlow example
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#minimal-unigrad-fs-example" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Minimal UniGrad-FS example
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#run-the-pilot-demo" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Run the PILOT demo
+        More runnable examples
       
     </span>
   </a>
@@ -1105,32 +1083,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#minimal-zeroflow-example" class="md-nav__link">
+  <a href="#more-runnable-examples" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Minimal ZeroFlow example
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#minimal-unigrad-fs-example" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Minimal UniGrad-FS example
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#run-the-pilot-demo" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Run the PILOT demo
+        More runnable examples
       
     </span>
   </a>
@@ -1216,84 +1172,13 @@
     <span class="n">logits</span><span class="p">,</span> <span class="n">loss_list</span> <span class="o">=</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
     <span class="nb">print</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">loss_list</span><span class="p">)))</span>
 </code></pre></div>
-<h2 id="minimal-zeroflow-example">Minimal ZeroFlow example<a class="headerlink" href="#minimal-zeroflow-example" title="Permanent link">&para;</a></h2>
-<p>ZeroFlow estimates update directions without ordinary backpropagation. It still uses the same high-level closure format.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">infty.optim</span><span class="w"> </span><span class="kn">import</span> <span class="n">ZeroFlow</span>
-
-<span class="n">model</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">16</span><span class="p">),</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
-<span class="n">inputs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
-<span class="n">targets</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="p">(</span><span class="mi">32</span><span class="p">,))</span>
-
-<span class="n">base_optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">SGD</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">)</span>
-<span class="n">optimizer</span> <span class="o">=</span> <span class="n">ZeroFlow</span><span class="p">(</span>
-    <span class="n">params</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span>
-    <span class="n">base_optimizer</span><span class="o">=</span><span class="n">base_optimizer</span><span class="p">,</span>
-    <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
-    <span class="n">args</span><span class="o">=</span><span class="p">{</span>
-        <span class="s2">&quot;inftyopt&quot;</span><span class="p">:</span> <span class="s2">&quot;zo_sgd&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;q&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="s2">&quot;zo_eps&quot;</span><span class="p">:</span> <span class="mf">1e-3</span><span class="p">,</span>
-        <span class="s2">&quot;perturbation_mode&quot;</span><span class="p">:</span> <span class="s2">&quot;two_side&quot;</span><span class="p">,</span>
-    <span class="p">},</span>
-<span class="p">)</span>
-
-<span class="k">def</span><span class="w"> </span><span class="nf">loss_fn</span><span class="p">():</span>
-    <span class="n">logits</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
-    <span class="n">loss</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">cross_entropy</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">targets</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">logits</span><span class="p">,</span> <span class="p">[</span><span class="n">loss</span><span class="p">]</span>
-
-<span class="n">optimizer</span><span class="o">.</span><span class="n">set_closure</span><span class="p">(</span><span class="n">loss_fn</span><span class="p">)</span>
-<span class="n">logits</span><span class="p">,</span> <span class="n">loss_list</span> <span class="o">=</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">loss_list</span><span class="p">)))</span>
-</code></pre></div>
-<h2 id="minimal-unigrad-fs-example">Minimal UniGrad-FS example<a class="headerlink" href="#minimal-unigrad-fs-example" title="Permanent link">&para;</a></h2>
-<p>UniGrad-FS is intended for two-objective continual-learning settings. For non-first tasks, it expects exactly two loss terms.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">infty.optim</span><span class="w"> </span><span class="kn">import</span> <span class="n">UniGrad_FS</span>
-
-<span class="n">model</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
-<span class="n">inputs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
-<span class="n">new_targets</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="p">(</span><span class="mi">32</span><span class="p">,))</span>
-<span class="n">old_targets</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="p">(</span><span class="mi">32</span><span class="p">,))</span>
-
-<span class="n">base_optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">SGD</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
-<span class="n">optimizer</span> <span class="o">=</span> <span class="n">UniGrad_FS</span><span class="p">(</span>
-    <span class="n">params</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span>
-    <span class="n">base_optimizer</span><span class="o">=</span><span class="n">base_optimizer</span><span class="p">,</span>
-    <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
-    <span class="n">args</span><span class="o">=</span><span class="p">{</span>
-        <span class="s2">&quot;task_id&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="s2">&quot;utype&quot;</span><span class="p">:</span> <span class="s2">&quot;model-wise&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;S_T&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">],</span>
-        <span class="s2">&quot;beta&quot;</span><span class="p">:</span> <span class="mf">0.9</span><span class="p">,</span>
-        <span class="s2">&quot;rho&quot;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span>
-    <span class="p">},</span>
-<span class="p">)</span>
-
-<span class="k">def</span><span class="w"> </span><span class="nf">loss_fn</span><span class="p">():</span>
-    <span class="n">logits</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
-    <span class="n">old_loss</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">cross_entropy</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">old_targets</span><span class="p">)</span>
-    <span class="n">new_loss</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">cross_entropy</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">new_targets</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">logits</span><span class="p">,</span> <span class="p">[</span><span class="n">old_loss</span><span class="p">,</span> <span class="n">new_loss</span><span class="p">]</span>
-
-<span class="n">optimizer</span><span class="o">.</span><span class="n">set_closure</span><span class="p">(</span><span class="n">loss_fn</span><span class="p">)</span>
-<span class="n">logits</span><span class="p">,</span> <span class="n">loss_list</span> <span class="o">=</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span> <span class="k">for</span> <span class="n">loss</span> <span class="ow">in</span> <span class="n">loss_list</span><span class="p">])</span>
-</code></pre></div>
-<h2 id="run-the-pilot-demo">Run the PILOT demo<a class="headerlink" href="#run-the-pilot-demo" title="Permanent link">&para;</a></h2>
-<p>Install the PILOT/demo dependencies from the repository root, then run:</p>
-<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>INFTY_demo
-python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;.[examples]&quot;</span>
-<span class="nb">cd</span><span class="w"> </span>workdirs/PILOT
-python<span class="w"> </span>main.py<span class="w"> </span>--config<span class="o">=</span>exps/memo_scr.json<span class="w"> </span>--inftyopt<span class="o">=</span>c_flat<span class="w"> </span>--workdir<span class="w"> </span>../results/memo_cflat
-python<span class="w"> </span>main.py<span class="w"> </span>--config<span class="o">=</span>exps/ease.json<span class="w"> </span>--inftyopt<span class="o">=</span>zo_sgd_conserve<span class="w"> </span>--workdir<span class="w"> </span>../results/ease_zo
-python<span class="w"> </span>main.py<span class="w"> </span>--config<span class="o">=</span>exps/icarl.json<span class="w"> </span>--inftyopt<span class="o">=</span>unigrad_fs<span class="w"> </span>--workdir<span class="w"> </span>../results/icarl_unigrad_fs
-</code></pre></div>
+<h2 id="more-runnable-examples">More runnable examples<a class="headerlink" href="#more-runnable-examples" title="Permanent link">&para;</a></h2>
+<p>For runnable scripts rather than inline snippets, see <a href="../examples/">Examples</a>.</p>
+<p>That page covers:</p>
+<ul>
+<li>minimal standalone scripts under <code>examples/infty_minimal/</code> for C-Flat, ZeroFlow, UniGrad-FS, and trajectory visualization;</li>
+<li>the PILOT demo entry points under <code>workdirs/PILOT/</code>.</li>
+</ul>
 <h2 id="quick-visualization-example">Quick visualization example<a class="headerlink" href="#quick-visualization-example" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">infty.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">visualize_trajectory</span>
 
