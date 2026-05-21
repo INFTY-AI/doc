@@ -68,14 +68,15 @@
 
 .md-typeset table.algo-papers th:nth-child(1),
 .md-typeset table.algo-papers td:nth-child(1) {
-  width: 11rem;
-  text-align: center;
+  width: 7.25rem;
+  text-align: left;
 }
 
 .md-typeset table.algo-papers th:nth-child(2),
 .md-typeset table.algo-papers td:nth-child(2) {
-  width: 4.25rem;
-  text-align: center;
+  width: 7rem;
+  text-align: left;
+  white-space: nowrap;
 }
 
 .md-typeset table.algo-papers th:nth-child(3),
