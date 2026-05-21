@@ -55,6 +55,11 @@
   filter: drop-shadow(0 0 0.35rem rgba(89, 184, 255, 0.22));
 }
 
+.md-tabs__link {
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
 .md-typeset table.algo-papers {
   table-layout: fixed;
   width: 100%;
