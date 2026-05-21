@@ -843,17 +843,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#how-to-report-a-bug" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        How to report a bug
-      
-    </span>
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -1335,17 +1324,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#how-to-report-a-bug" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        How to report a bug
-      
-    </span>
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -1471,7 +1449,7 @@ python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </sp
 <p>These utilities compute Hessian-related quantities and can be expensive.</p>
 <p>For debugging:</p>
 <div class="highlight"><pre><span></span><code><span class="n">visualize_landscape</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">samples</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
-<span class="n">visualize_trajectory</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">n_iter</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">grid_size</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">visualize_trajectory</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">n_iter</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="n">grid_size</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="plot-output-is-not-found">Plot output is not found<a class="headerlink" href="#plot-output-is-not-found" title="Permanent link">&para;</a></h2>
 <p>All plotting functions accept <code>output_dir</code>. Pass an explicit directory:</p>
@@ -1483,18 +1461,6 @@ python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </sp
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib</span>
 <span class="n">matplotlib</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s2">&quot;Agg&quot;</span><span class="p">)</span>
 </code></pre></div>
-<h2 id="how-to-report-a-bug">How to report a bug<a class="headerlink" href="#how-to-report-a-bug" title="Permanent link">&para;</a></h2>
-<p>Include:</p>
-<ul>
-<li>INFTY version or commit hash;</li>
-<li>Python version;</li>
-<li>PyTorch version;</li>
-<li>CUDA version;</li>
-<li>optimizer name and <code>args</code> dictionary;</li>
-<li>base optimizer settings;</li>
-<li>minimal closure code;</li>
-<li>full error traceback.</li>
-</ul>
 
 
 
