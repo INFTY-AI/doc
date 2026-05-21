@@ -1530,16 +1530,16 @@ mkdocs<span class="w"> </span>build<span class="w"> </span>--strict
 </ul>
 <h2 id="release-checklist">Release checklist<a class="headerlink" href="#release-checklist" title="Permanent link">&para;</a></h2>
 <p>Before releasing a new version:</p>
-<ul>
-<li>[ ] run tests;</li>
-<li>[ ] build MkDocs documentation with <code>mkdocs build --strict</code>;</li>
-<li>[ ] build optional Sphinx docs if RST API pages are used;</li>
-<li>[ ] update <code>docs/changelog.md</code>;</li>
-<li>[ ] update version metadata;</li>
-<li>[ ] verify PyPI package metadata and homepage URL;</li>
-<li>[ ] verify README documentation links;</li>
-<li>[ ] tag the release;</li>
-<li>[ ] archive experiment-relevant commit hashes for paper reproducibility.</li>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> run tests;</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> build MkDocs documentation with <code>mkdocs build --strict</code>;</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> build optional Sphinx docs if RST API pages are used;</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> update <code>docs/changelog.md</code>;</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> update version metadata;</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> verify PyPI package metadata and homepage URL;</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> verify README documentation links;</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> tag the release;</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> archive experiment-relevant commit hashes for paper reproducibility.</li>
 </ul>
 <h2 id="api-stability">API stability<a class="headerlink" href="#api-stability" title="Permanent link">&para;</a></h2>
 <p>The project is currently in public beta. If a documented public constructor, plotting contract, or closure convention changes, document it in the changelog, provide a migration note, and follow the repository's <a href="../stability_policy/">versioning and compatibility policy</a>.</p>

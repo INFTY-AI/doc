@@ -1097,42 +1097,42 @@
 <h1 id="release-checklist">Release Checklist<a class="headerlink" href="#release-checklist" title="Permanent link">&para;</a></h1>
 <p>Use this checklist before publishing a new INFTY package or paper artifact.</p>
 <h2 id="code">Code<a class="headerlink" href="#code" title="Permanent link">&para;</a></h2>
-<ul>
-<li>[ ] All tests pass.</li>
-<li>[ ] Public APIs import correctly.</li>
-<li>[ ] Optimizer regression tests run on CPU.</li>
-<li>[ ] Plot regression tests run with small grids.</li>
-<li>[ ] Example scripts run or are clearly marked as requiring benchmark data.</li>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> All tests pass.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Public APIs import correctly.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Optimizer regression tests run on CPU.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Plot regression tests run with small grids.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Example scripts run or are clearly marked as requiring benchmark data.</li>
 </ul>
 <h2 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h2>
-<ul>
-<li>[ ] README links to <code>docs/</code>.</li>
-<li>[ ] <code>docs/user_guide.md</code> reflects current optimizer behavior.</li>
-<li>[ ] <code>docs/api_reference.md</code> reflects current public APIs.</li>
-<li>[ ] <code>docs/developer_guide.md</code> describes extension workflow.</li>
-<li>[ ] <code>docs/troubleshooting.md</code> includes known issues.</li>
-<li>[ ] MkDocs builds with <code>mkdocs build --strict</code>.</li>
-<li>[ ] Optional Sphinx docs build if used.</li>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> README links to <code>docs/</code>.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>docs/user_guide.md</code> reflects current optimizer behavior.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>docs/api_reference.md</code> reflects current public APIs.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>docs/developer_guide.md</code> describes extension workflow.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>docs/troubleshooting.md</code> includes known issues.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> MkDocs builds with <code>mkdocs build --strict</code>.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Optional Sphinx docs build if used.</li>
 </ul>
 <h2 id="packaging">Packaging<a class="headerlink" href="#packaging" title="Permanent link">&para;</a></h2>
-<ul>
-<li>[ ] Package version is updated.</li>
-<li>[ ] Homepage URL is correct.</li>
-<li>[ ] Supported Python versions and <code>Requires-Python</code> metadata match the documented support matrix.</li>
-<li>[ ] Dependencies are accurate.</li>
-<li>[ ] PILOT/demo dependencies in the <code>examples</code> extra are accurate.</li>
-<li>[ ] License metadata is correct.</li>
-<li>[ ] PyPI trusted publishing is configured for the GitHub <code>pypi</code> environment.</li>
-<li>[ ] Release tag follows the <code>v*</code> pattern expected by <code>.github/workflows/release.yml</code>.</li>
-<li>[ ] Release tag version matches the package version embedded in the built distribution.</li>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Package version is updated.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Homepage URL is correct.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Supported Python versions and <code>Requires-Python</code> metadata match the documented support matrix.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Dependencies are accurate.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> PILOT/demo dependencies in the <code>examples</code> extra are accurate.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> License metadata is correct.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> PyPI trusted publishing is configured for the GitHub <code>pypi</code> environment.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Release tag follows the <code>v*</code> pattern expected by <code>.github/workflows/release.yml</code>.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Release tag version matches the package version embedded in the built distribution.</li>
 </ul>
 <h2 id="reproducibility">Reproducibility<a class="headerlink" href="#reproducibility" title="Permanent link">&para;</a></h2>
-<ul>
-<li>[ ] Release commit hash is recorded.</li>
-<li>[ ] Any public API deprecations or migration notes are called out in the changelog and versioning and compatibility policy.</li>
-<li>[ ] Experiment configs are archived.</li>
-<li>[ ] Random seeds and task orders are documented.</li>
-<li>[ ] Citation information is updated.</li>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Release commit hash is recorded.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Any public API deprecations or migration notes are called out in the changelog and versioning and compatibility policy.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Experiment configs are archived.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Random seeds and task orders are documented.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Citation information is updated.</li>
 </ul>
 
 
