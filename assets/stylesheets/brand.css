@@ -68,12 +68,19 @@
 
 .md-typeset table.algo-papers th:nth-child(1),
 .md-typeset table.algo-papers td:nth-child(1) {
-  width: 5.5rem;
+  width: 11rem;
+  text-align: center;
 }
 
 .md-typeset table.algo-papers th:nth-child(2),
 .md-typeset table.algo-papers td:nth-child(2) {
-  width: 15rem;
+  width: 8.5rem;
+  text-align: center;
+}
+
+.md-typeset table.algo-papers th:nth-child(3),
+.md-typeset table.algo-papers td:nth-child(3) {
+  text-align: left;
 }
 
 @media screen and (max-width: 76.234375em) {
