@@ -1173,8 +1173,7 @@
 <h2 id="core-pattern">Core pattern<a class="headerlink" href="#core-pattern" title="Permanent link">&para;</a></h2>
 <p>Most INFTY optimizers use the same pattern:</p>
 <ol>
-<li>create a normal PyTorch optimizer;</li>
-<li>wrap it with an INFTY optimizer;</li>
+<li>wrap a normal PyTorch optimizer with an INFTY optimizer;</li>
 <li>write a closure that returns <code>(logits, loss_list)</code>;</li>
 <li>call <code>optimizer.set_closure(loss_fn)</code>;</li>
 <li>call <code>optimizer.step()</code>.</li>
