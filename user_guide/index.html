@@ -857,17 +857,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#analysis-utilities" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Analysis utilities
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#choosing-an-optimizer" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1362,17 +1351,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#analysis-utilities" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Analysis utilities
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#choosing-an-optimizer" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1417,11 +1395,10 @@
 <h1 id="user-guide">User Guide<a class="headerlink" href="#user-guide" title="Permanent link">&para;</a></h1>
 <p>This guide explains how to use INFTY in continual-learning experiments and custom PyTorch training pipelines.</p>
 <h2 id="what-infty-provides">What INFTY provides<a class="headerlink" href="#what-infty-provides" title="Permanent link">&para;</a></h2>
-<p>INFTY exposes three main types of functionality:</p>
+<p>INFTY exposes two main types of functionality:</p>
 <ol>
 <li><strong>Optimizers</strong> under <code>infty.optim</code>;</li>
-<li><strong>Visualization utilities</strong> under <code>infty.plot</code>;</li>
-<li><strong>Analysis utilities</strong> under <code>infty.analysis</code>.</li>
+<li><strong>Visualization utilities</strong> under <code>infty.plot</code>.</li>
 </ol>
 <p>The optimizer module contains three algorithm families:</p>
 <table>
@@ -1722,23 +1699,14 @@
     <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;workdirs/plots/diagnostics/conflicts/demo&quot;</span><span class="p">,</span>
 <span class="p">)</span>
 </code></pre></div>
-<p>The optimizer must expose <code>sim_list</code> or <code>sim_arr</code>. <code>UniGrad_FS</code> records similarity values through <code>sim_list</code>.</p>
+<p>This API only renders the top-level similarity curve.
+The optimizer must expose <code>sim_list</code> or <code>sim_arr</code>. <code>UniGrad_FS</code> records similarity values through <code>sim_list</code>.</p>
 <h3 id="optimization-trajectory">Optimization trajectory<a class="headerlink" href="#optimization-trajectory" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="n">infty_plot</span><span class="o">.</span><span class="n">visualize_trajectory</span><span class="p">(</span>
-    <span class="n">optimizer_name</span><span class="o">=</span><span class="s2">&quot;cagrad&quot;</span><span class="p">,</span>
+    <span class="n">optimizer_name</span><span class="o">=</span><span class="s2">&quot;adam&quot;</span><span class="p">,</span>
     <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;workdirs/plots/diagnostics/trajectory/demo&quot;</span><span class="p">,</span>
 <span class="p">)</span>
 </code></pre></div>
-<h2 id="analysis-utilities">Analysis utilities<a class="headerlink" href="#analysis-utilities" title="Permanent link">&para;</a></h2>
-<p>The <code>infty.analysis</code> module includes tools for surrogate-gradient quality analysis. These utilities are most useful for evaluating zeroth-order estimators against first-order gradients.</p>
-<p>Typical workflow:</p>
-<ol>
-<li>define an <code>objective_fn</code> that returns <code>(logits, loss_list)</code>;</li>
-<li>call <code>analyze_surrogate_batch</code> on one batch;</li>
-<li>collect records across batches or tasks;</li>
-<li>aggregate and save results with <code>aggregate_records</code>, <code>save_records_as_json</code>, and <code>save_records_as_csv</code>;</li>
-<li>plot summaries with <code>plot_summary_records</code>.</li>
-</ol>
 <h2 id="choosing-an-optimizer">Choosing an optimizer<a class="headerlink" href="#choosing-an-optimizer" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -1770,7 +1738,7 @@
 </tr>
 <tr>
 <td>Need diagnostics only</td>
-<td><code>infty.plot</code> and <code>infty.analysis</code></td>
+<td><code>infty.plot</code></td>
 </tr>
 </tbody>
 </table>
@@ -1783,7 +1751,7 @@
 <li>base optimizer and its hyperparameters;</li>
 <li>random seed;</li>
 <li>task order and dataset split;</li>
-<li>output directory for plots and analysis artifacts.</li>
+<li>output directory for plot artifacts.</li>
 </ul>
 
 

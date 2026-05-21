@@ -991,7 +991,7 @@
 
 
 <h1 id="infty-documentation">INFTY Documentation<a class="headerlink" href="#infty-documentation" title="Permanent link">&para;</a></h1>
-<p>INFTY is an optimization-centric toolkit for Continual AI. It provides plug-and-play optimizers, gradient-conflict analysis utilities, and visualization tools for diagnosing optimization behavior in continual-learning systems.</p>
+<p>INFTY is an optimization-centric toolkit for Continual AI. It provides plug-and-play optimizers and visualization tools for diagnosing optimization behavior in continual-learning systems.</p>
 <p>The library is designed for research workflows where users need to replace or augment an existing PyTorch optimizer without rewriting the whole training pipeline.</p>
 <h2 id="documentation-map">Documentation map<a class="headerlink" href="#documentation-map" title="Permanent link">&para;</a></h2>
 <table>
@@ -1024,7 +1024,7 @@
 </tr>
 <tr>
 <td><a href="developer_guide/">Developer Guide</a></td>
-<td>Extend the library with new optimizers, plots, and analysis modules.</td>
+<td>Extend the library with new optimizers, plots, examples, and documentation.</td>
 </tr>
 <tr>
 <td><a href="architecture/">Architecture</a></td>
@@ -1046,7 +1046,7 @@
 <li><strong>Optimizer wrapping</strong>: most INFTY optimizers wrap a standard PyTorch optimizer such as <code>torch.optim.SGD</code> or <code>torch.optim.Adam</code>.</li>
 <li><strong>Closure-based training</strong>: the training loss is supplied through a closure that returns <code>(logits, loss_list)</code>.</li>
 <li><strong>Continual-learning awareness</strong>: several optimizers explicitly handle flatness, gradient conflicts, or zeroth-order updates, which are common concerns in continual learning.</li>
-<li><strong>Diagnostics as first-class utilities</strong>: the package includes tools for loss landscapes, Hessian ESD, gradient-conflict curves, trajectory visualization, and surrogate-gradient quality analysis.</li>
+<li><strong>Diagnostics as first-class utilities</strong>: the package includes tools for loss landscapes, Hessian ESD, gradient-conflict curves, and trajectory visualization.</li>
 </ol>
 <h2 id="recommended-reading-order">Recommended reading order<a class="headerlink" href="#recommended-reading-order" title="Permanent link">&para;</a></h2>
 <p>New users should read:</p>

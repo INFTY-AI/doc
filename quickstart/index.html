@@ -1157,10 +1157,10 @@
 <h2 id="run-the-pilot-demo">Run the PILOT demo<a class="headerlink" href="#run-the-pilot-demo" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>INFTY_demo
 python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>.<span class="o">[</span>examples<span class="o">]</span>
-<span class="nb">cd</span><span class="w"> </span>examples/PILOT
-python<span class="w"> </span>main.py<span class="w"> </span>--config<span class="o">=</span>exps/memo_scr.json<span class="w"> </span>--inftyopt<span class="o">=</span>c_flat<span class="w"> </span>--workdir<span class="w"> </span>../../workdirs
-python<span class="w"> </span>main.py<span class="w"> </span>--config<span class="o">=</span>exps/ease.json<span class="w"> </span>--inftyopt<span class="o">=</span>zo_sgd_conserve<span class="w"> </span>--workdir<span class="w"> </span>../../workdirs
-python<span class="w"> </span>main.py<span class="w"> </span>--config<span class="o">=</span>exps/icarl.json<span class="w"> </span>--inftyopt<span class="o">=</span>unigrad_fs<span class="w"> </span>--workdir<span class="w"> </span>../../workdirs
+<span class="nb">cd</span><span class="w"> </span>workdirs/PILOT
+python<span class="w"> </span>main.py<span class="w"> </span>--config<span class="o">=</span>exps/memo_scr.json<span class="w"> </span>--inftyopt<span class="o">=</span>c_flat<span class="w"> </span>--workdir<span class="w"> </span>../results/memo_cflat
+python<span class="w"> </span>main.py<span class="w"> </span>--config<span class="o">=</span>exps/ease.json<span class="w"> </span>--inftyopt<span class="o">=</span>zo_sgd_conserve<span class="w"> </span>--workdir<span class="w"> </span>../results/ease_zo
+python<span class="w"> </span>main.py<span class="w"> </span>--config<span class="o">=</span>exps/icarl.json<span class="w"> </span>--inftyopt<span class="o">=</span>unigrad_fs<span class="w"> </span>--workdir<span class="w"> </span>../results/icarl_unigrad_fs
 </code></pre></div>
 <h2 id="quick-visualization-example">Quick visualization example<a class="headerlink" href="#quick-visualization-example" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">infty.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">visualize_trajectory</span>

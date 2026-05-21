@@ -17,11 +17,3 @@ Adding a Plotting Utility
 2. Accept an explicit ``output_dir``.
 3. Return saved artifact paths.
 4. Export the function in ``src/infty/plot/__init__.py``.
-
-Adding an Analysis Utility
---------------------------
-
-1. Add a function under ``src/infty/analysis/``.
-2. Keep the function benchmark-agnostic.
-3. Export it in ``src/infty/analysis/__init__.py``.
-4. Add documentation and tests.

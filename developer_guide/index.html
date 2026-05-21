@@ -843,17 +843,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#adding-an-analysis-utility" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Adding an analysis utility
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#testing-guidelines" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1194,17 +1183,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#adding-an-analysis-utility" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Adding an analysis utility
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#testing-guidelines" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1269,7 +1247,7 @@
 
 
 <h1 id="developer-guide">Developer Guide<a class="headerlink" href="#developer-guide" title="Permanent link">&para;</a></h1>
-<p>This guide describes how to extend INFTY with new optimizers, plotting utilities, analysis modules, examples, and documentation.</p>
+<p>This guide describes how to extend INFTY with new optimizers, plotting utilities, examples, and documentation.</p>
 <h2 id="repository-layout">Repository layout<a class="headerlink" href="#repository-layout" title="Permanent link">&para;</a></h2>
 <p>A typical INFTY repository layout is:</p>
 <div class="highlight"><pre><span></span><code>INFTY_demo/
@@ -1283,9 +1261,10 @@
 │       │   ├── gradient_filtering/
 │       │   └── zeroth_order_updates/
 │       ├── plot/
-│       ├── analysis/
 │       └── utils/
 ├── examples/
+│   └── infty_minimal/
+├── workdirs/
 │   └── PILOT/
 ├── tests/
 │   ├── optim/
@@ -1315,7 +1294,7 @@ mkdocs<span class="w"> </span>build<span class="w"> </span>--strict
 <h3 id="3-keep-research-algorithms-modular">3. Keep research algorithms modular<a class="headerlink" href="#3-keep-research-algorithms-modular" title="Permanent link">&para;</a></h3>
 <p>Do not place benchmark-specific assumptions inside library code. Benchmark logic belongs in <code>examples/</code> or experiment scripts.</p>
 <h3 id="4-make-diagnostics-reproducible">4. Make diagnostics reproducible<a class="headerlink" href="#4-make-diagnostics-reproducible" title="Permanent link">&para;</a></h3>
-<p>Plotting and analysis functions should return output paths and save artifacts under deterministic directories.</p>
+<p>Plotting functions should return output paths and save artifacts under deterministic directories.</p>
 <h2 id="adding-a-geometry-reshaping-optimizer">Adding a geometry reshaping optimizer<a class="headerlink" href="#adding-a-geometry-reshaping-optimizer" title="Permanent link">&para;</a></h2>
 <p>Use this family when the optimizer modifies the local geometry, perturbation direction, or flatness-aware gradient.</p>
 <ol>
@@ -1410,14 +1389,6 @@ mkdocs<span class="w"> </span>build<span class="w"> </span>--strict
 <li>Export the function in <code>src/infty/plot/__init__.py</code>.</li>
 <li>Add a small test that verifies the function saves an artifact on a tiny model or toy problem.</li>
 </ol>
-<h2 id="adding-an-analysis-utility">Adding an analysis utility<a class="headerlink" href="#adding-an-analysis-utility" title="Permanent link">&para;</a></h2>
-<ol>
-<li>Add the function under <code>src/infty/analysis/</code>.</li>
-<li>Keep input/output types explicit.</li>
-<li>Avoid silently changing model parameters.</li>
-<li>Export the function in <code>src/infty/analysis/__init__.py</code>.</li>
-<li>Add documentation in <code>docs/api_reference.md</code>.</li>
-</ol>
 <h2 id="testing-guidelines">Testing guidelines<a class="headerlink" href="#testing-guidelines" title="Permanent link">&para;</a></h2>
 <p>Recommended minimal tests:</p>
 <ul>
@@ -1425,8 +1396,7 @@ mkdocs<span class="w"> </span>build<span class="w"> </span>--strict
 <li>one-step optimizer tests on a tiny neural network;</li>
 <li>closure-shape tests;</li>
 <li>serialization tests for wrapped base optimizers;</li>
-<li>plot regression tests using small grid sizes;</li>
-<li>analysis regression tests using one tiny batch.</li>
+<li>plot regression tests using small grid sizes.</li>
 </ul>
 <p>Example optimizer regression test:</p>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_cflat_one_step</span><span class="p">():</span>

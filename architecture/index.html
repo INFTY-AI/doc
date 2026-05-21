@@ -848,17 +848,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#analysis-architecture" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Analysis architecture
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#public-api-exports" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1117,17 +1106,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#analysis-architecture" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Analysis architecture
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#public-api-exports" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1167,7 +1145,6 @@
 │   ├── gradient_filtering/
 │   └── zeroth_order_updates/
 ├── plot/
-├── analysis/
 └── utils/
 </code></pre></div>
 <h2 id="optimizer-families">Optimizer families<a class="headerlink" href="#optimizer-families" title="Permanent link">&para;</a></h2>
@@ -1221,25 +1198,14 @@
 <li>return saved artifact paths;</li>
 <li>avoid hidden benchmark-specific assumptions.</li>
 </ul>
-<h2 id="analysis-architecture">Analysis architecture<a class="headerlink" href="#analysis-architecture" title="Permanent link">&para;</a></h2>
-<p>Analysis utilities should be independent of a specific benchmark. The current surrogate-quality analysis compares first-order and zeroth-order directions by measuring:</p>
-<ul>
-<li>gradient norms;</li>
-<li>cosine similarity;</li>
-<li>estimator variance;</li>
-<li>projected gradient statistics;</li>
-<li>estimated loss decrease.</li>
-</ul>
 <h2 id="public-api-exports">Public API exports<a class="headerlink" href="#public-api-exports" title="Permanent link">&para;</a></h2>
 <p>Public APIs should be exported through package-level <code>__init__.py</code> files:</p>
 <div class="highlight"><pre><span></span><code>src/infty/optim/__init__.py
 src/infty/plot/__init__.py
-src/infty/analysis/__init__.py
 </code></pre></div>
 <p>This allows users to write stable imports such as:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">infty.optim</span><span class="w"> </span><span class="kn">import</span> <span class="n">C_Flat</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">infty.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">visualize_landscape</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">infty.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">analyze_surrogate_batch</span>
 </code></pre></div>
 
 

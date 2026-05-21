@@ -6,5 +6,4 @@ API Reference
 
    optim
    plot
-   analysis
    utils
