@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/images/logo_mark.ico">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
   
@@ -32,7 +32,7 @@
   
 
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -1475,7 +1475,7 @@
     <span class="n">params</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span>
     <span class="n">base_optimizer</span><span class="o">=</span><span class="n">base_optimizer</span><span class="p">,</span>
     <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
-    <span class="n">args</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;rho&quot;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span> <span class="s2">&quot;lamb&quot;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">},</span>
+    <span class="n">args</span><span class="o">=</span><span class="p">{</span><span class="s2">"rho"</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span> <span class="s2">"lamb"</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">},</span>
 <span class="p">)</span>
 </code></pre></div>
 <p>The base optimizer controls learning rate, parameter groups, weight decay, momentum, and other ordinary PyTorch optimizer settings. The INFTY wrapper controls the continual-learning or geometry-aware update logic.</p>
@@ -1526,9 +1526,9 @@
     <span class="n">base_optimizer</span><span class="o">=</span><span class="n">base_optimizer</span><span class="p">,</span>
     <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
     <span class="n">args</span><span class="o">=</span><span class="p">{</span>
-        <span class="s2">&quot;strategy&quot;</span><span class="p">:</span> <span class="s2">&quot;basic&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;rho&quot;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span>
-        <span class="s2">&quot;lamb&quot;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>
+        <span class="s2">"strategy"</span><span class="p">:</span> <span class="s2">"basic"</span><span class="p">,</span>
+        <span class="s2">"rho"</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span>
+        <span class="s2">"lamb"</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>
     <span class="p">},</span>
 <span class="p">)</span>
 </code></pre></div>
@@ -1572,11 +1572,11 @@
     <span class="n">base_optimizer</span><span class="o">=</span><span class="n">base_optimizer</span><span class="p">,</span>
     <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
     <span class="n">args</span><span class="o">=</span><span class="p">{</span>
-        <span class="s2">&quot;inftyopt&quot;</span><span class="p">:</span> <span class="s2">&quot;zo_sgd&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;q&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="s2">&quot;zo_eps&quot;</span><span class="p">:</span> <span class="mf">1e-3</span><span class="p">,</span>
-        <span class="s2">&quot;perturbation_mode&quot;</span><span class="p">:</span> <span class="s2">&quot;two_side&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;memory_efficient&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s2">"inftyopt"</span><span class="p">:</span> <span class="s2">"zo_sgd"</span><span class="p">,</span>
+        <span class="s2">"q"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s2">"zo_eps"</span><span class="p">:</span> <span class="mf">1e-3</span><span class="p">,</span>
+        <span class="s2">"perturbation_mode"</span><span class="p">:</span> <span class="s2">"two_side"</span><span class="p">,</span>
+        <span class="s2">"memory_efficient"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">},</span>
 <span class="p">)</span>
 </code></pre></div>
@@ -1667,11 +1667,11 @@
     <span class="n">base_optimizer</span><span class="o">=</span><span class="n">base_optimizer</span><span class="p">,</span>
     <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
     <span class="n">args</span><span class="o">=</span><span class="p">{</span>
-        <span class="s2">&quot;task_id&quot;</span><span class="p">:</span> <span class="n">task_id</span><span class="p">,</span>
-        <span class="s2">&quot;utype&quot;</span><span class="p">:</span> <span class="s2">&quot;model-wise&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;S_T&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">],</span>
-        <span class="s2">&quot;beta&quot;</span><span class="p">:</span> <span class="mf">0.9</span><span class="p">,</span>
-        <span class="s2">&quot;rho&quot;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span>
+        <span class="s2">"task_id"</span><span class="p">:</span> <span class="n">task_id</span><span class="p">,</span>
+        <span class="s2">"utype"</span><span class="p">:</span> <span class="s2">"model-wise"</span><span class="p">,</span>
+        <span class="s2">"S_T"</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">],</span>
+        <span class="s2">"beta"</span><span class="p">:</span> <span class="mf">0.9</span><span class="p">,</span>
+        <span class="s2">"rho"</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span>
     <span class="p">},</span>
 <span class="p">)</span>
 </code></pre></div>
@@ -1719,7 +1719,7 @@
     <span class="n">loader</span><span class="o">=</span><span class="n">train_loader</span><span class="p">,</span>
     <span class="n">task</span><span class="o">=</span><span class="n">task_id</span><span class="p">,</span>
     <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
-    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;workdirs/plots/diagnostics/landscape/demo&quot;</span><span class="p">,</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="s2">"workdirs/plots/diagnostics/landscape/demo"</span><span class="p">,</span>
 <span class="p">)</span>
 </code></pre></div>
 <h3 id="hessian-esd">Hessian ESD<a class="headerlink" href="#hessian-esd" title="Permanent link">&para;</a></h3>
@@ -1730,23 +1730,23 @@
     <span class="n">loader</span><span class="o">=</span><span class="n">train_loader</span><span class="p">,</span>
     <span class="n">task</span><span class="o">=</span><span class="n">task_id</span><span class="p">,</span>
     <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
-    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;workdirs/plots/diagnostics/esd/demo&quot;</span><span class="p">,</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="s2">"workdirs/plots/diagnostics/esd/demo"</span><span class="p">,</span>
 <span class="p">)</span>
 </code></pre></div>
 <h3 id="conflict-curves">Conflict curves<a class="headerlink" href="#conflict-curves" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="n">infty_plot</span><span class="o">.</span><span class="n">visualize_conflicts</span><span class="p">(</span>
     <span class="n">optimizer</span><span class="o">=</span><span class="n">optimizer</span><span class="p">,</span>
     <span class="n">task</span><span class="o">=</span><span class="n">task_id</span><span class="p">,</span>
-    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;workdirs/plots/diagnostics/conflicts/demo&quot;</span><span class="p">,</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="s2">"workdirs/plots/diagnostics/conflicts/demo"</span><span class="p">,</span>
 <span class="p">)</span>
 </code></pre></div>
 <p>This API only renders the top-level similarity curve.
 The optimizer must expose <code>sim_list</code> or <code>sim_arr</code>. <code>UniGrad_FS</code> records similarity values through <code>sim_list</code>.</p>
 <h3 id="optimization-trajectory">Optimization trajectory<a class="headerlink" href="#optimization-trajectory" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="n">infty_plot</span><span class="o">.</span><span class="n">visualize_trajectory</span><span class="p">(</span>
-    <span class="n">optimizer_name</span><span class="o">=</span><span class="s2">&quot;adam&quot;</span><span class="p">,</span>
+    <span class="n">optimizer_name</span><span class="o">=</span><span class="s2">"adam"</span><span class="p">,</span>
     <span class="n">n_iter</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span>
-    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;workdirs/plots/diagnostics/trajectory/demo&quot;</span><span class="p">,</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="s2">"workdirs/plots/diagnostics/trajectory/demo"</span><span class="p">,</span>
 <span class="p">)</span>
 </code></pre></div>
 <h2 id="choosing-an-optimizer">Choosing an optimizer<a class="headerlink" href="#choosing-an-optimizer" title="Permanent link">&para;</a></h2>
@@ -1853,7 +1853,7 @@ The optimizer must expose <code>sim_list</code> or <code>sim_arr</code>. <code>U
       <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy", "search.suggest", "search.highlight"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

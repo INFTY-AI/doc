@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/images/logo_mark.ico">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
   
@@ -32,7 +32,7 @@
   
 
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -1318,7 +1318,7 @@
 python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
 <span class="nb">source</span><span class="w"> </span>.venv/bin/activate
 python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>pip
-python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[examples]&quot;</span>
+python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">".[examples]"</span>
 </code></pre></div>
 <p>Run tests:</p>
 <div class="highlight"><pre><span></span><code><span class="nv">PYTEST_DISABLE_PLUGIN_AUTOLOAD</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>pytest<span class="w"> </span>tests
@@ -1351,7 +1351,7 @@ mkdocs<span class="w"> </span>build<span class="w"> </span>--strict
 <span class="k">class</span><span class="w"> </span><span class="nc">MyOptimizer</span><span class="p">(</span><span class="n">InftyBaseOptimizer</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">base_optimizer</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">base_optimizer</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;my_optimizer&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">"my_optimizer"</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="n">args</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">closure</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">delay</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -1370,7 +1370,7 @@ mkdocs<span class="w"> </span>build<span class="w"> </span>--strict
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="o">...</span><span class="p">,</span>
-    <span class="s2">&quot;MyOptimizer&quot;</span><span class="p">,</span>
+    <span class="s2">"MyOptimizer"</span><span class="p">,</span>
 <span class="p">]</span>
 </code></pre></div>
 <ol>
@@ -1391,14 +1391,14 @@ mkdocs<span class="w"> </span>build<span class="w"> </span>--strict
 <span class="k">class</span><span class="w"> </span><span class="nc">MyMultiObjectiveOptimizer</span><span class="p">(</span><span class="n">EasyCLMultiObjOptimizer</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">base_optimizer</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">base_optimizer</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;my_multi_obj&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">"my_multi_obj"</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="n">args</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">closure</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">delay</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="n">get_grad</span> <span class="o">=</span> <span class="n">closure</span> <span class="k">if</span> <span class="n">closure</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward_func</span>
         <span class="n">logits</span><span class="p">,</span> <span class="n">loss_list</span> <span class="o">=</span> <span class="n">get_grad</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_compute_grad_dim</span><span class="p">()</span>
-        <span class="n">grads</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_grad</span><span class="p">(</span><span class="n">loss_list</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;backward&quot;</span><span class="p">)</span>
+        <span class="n">grads</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_grad</span><span class="p">(</span><span class="n">loss_list</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"backward"</span><span class="p">)</span>
         <span class="n">new_grads</span> <span class="o">=</span> <span class="n">grads</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_reset_grad</span><span class="p">(</span><span class="n">new_grads</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">delay</span><span class="p">:</span>
@@ -1445,7 +1445,7 @@ mkdocs<span class="w"> </span>build<span class="w"> </span>--strict
     <span class="n">inputs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
     <span class="n">targets</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="p">(</span><span class="mi">8</span><span class="p">,))</span>
     <span class="n">base</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">SGD</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
-    <span class="n">opt</span> <span class="o">=</span> <span class="n">C_Flat</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">base</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;rho&quot;</span><span class="p">:</span> <span class="mf">0.01</span><span class="p">})</span>
+    <span class="n">opt</span> <span class="o">=</span> <span class="n">C_Flat</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">base</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">{</span><span class="s2">"rho"</span><span class="p">:</span> <span class="mf">0.01</span><span class="p">})</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">loss_fn</span><span class="p">():</span>
         <span class="n">logits</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
@@ -1538,7 +1538,7 @@ mkdocs<span class="w"> </span>build<span class="w"> </span>--strict
       <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy", "search.suggest", "search.highlight"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

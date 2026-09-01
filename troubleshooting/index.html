@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/images/logo_mark.ico">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
   
@@ -32,7 +32,7 @@
   
 
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -1266,7 +1266,7 @@ python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </sp
 </code></pre></div>
 <h2 id="modulenotfounderror-for-pilotdemo-dependencies"><code>ModuleNotFoundError</code> for PILOT/demo dependencies<a class="headerlink" href="#modulenotfounderror-for-pilotdemo-dependencies" title="Permanent link">&para;</a></h2>
 <p>The PILOT demo and some optional workflows require the <code>examples</code> extra. The minimal scripts under <code>examples/infty_minimal/</code> do not. From a source checkout, run this from the repository root:</p>
-<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;.[examples]&quot;</span>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">".[examples]"</span>
 </code></pre></div>
 <h2 id="optimizer-does-not-update-parameters">Optimizer does not update parameters<a class="headerlink" href="#optimizer-does-not-update-parameters" title="Permanent link">&para;</a></h2>
 <p>Check that:</p>
@@ -1338,8 +1338,8 @@ python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </sp
 <h2 id="distributed-training-issue-with-gradient-reduction">Distributed training issue with gradient reduction<a class="headerlink" href="#distributed-training-issue-with-gradient-reduction" title="Permanent link">&para;</a></h2>
 <p><code>InftyBaseOptimizer</code> supports distributed gradient synchronization through <code>grad_reduce</code>.</p>
 <p>Valid values:</p>
-<div class="highlight"><pre><span></span><code><span class="s2">&quot;mean&quot;</span>
-<span class="s2">&quot;sum&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="s2">"mean"</span>
+<span class="s2">"sum"</span>
 </code></pre></div>
 <p>If using DistributedDataParallel, ensure the model object passed into the optimizer is the DDP-wrapped model when <code>no_sync()</code> behavior is required.</p>
 <h2 id="zeroflow-produces-unstable-loss">ZeroFlow produces unstable loss<a class="headerlink" href="#zeroflow-produces-unstable-loss" title="Permanent link">&para;</a></h2>
@@ -1362,13 +1362,13 @@ python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </sp
 </code></pre></div>
 <h2 id="plot-output-is-not-found">Plot output is not found<a class="headerlink" href="#plot-output-is-not-found" title="Permanent link">&para;</a></h2>
 <p>All plotting functions accept <code>output_dir</code>. Pass an explicit directory:</p>
-<div class="highlight"><pre><span></span><code><span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;workdirs/plots/custom/my_experiment&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="n">output_dir</span><span class="o">=</span><span class="s2">"workdirs/plots/custom/my_experiment"</span>
 </code></pre></div>
 <p>Most plotting functions return a dictionary or path containing the saved artifact location. Print the return value.</p>
 <h2 id="matplotlib-fails-on-a-headless-server">Matplotlib fails on a headless server<a class="headerlink" href="#matplotlib-fails-on-a-headless-server" title="Permanent link">&para;</a></h2>
 <p>Use a non-interactive backend before importing plotting code:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib</span>
-<span class="n">matplotlib</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s2">&quot;Agg&quot;</span><span class="p">)</span>
+<span class="n">matplotlib</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s2">"Agg"</span><span class="p">)</span>
 </code></pre></div>
 
 
@@ -1428,7 +1428,7 @@ python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </sp
       <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy", "search.suggest", "search.highlight"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>
